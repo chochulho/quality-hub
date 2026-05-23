@@ -60,19 +60,23 @@ export default function PillHeader() {
   }, []);
 
   // 클라이언트 사이드 auth 상태 구독
+  // onAuthStateChange는 마운트 시 INITIAL_SESSION 이벤트로 즉시 현재 세션을 전달함
+  // — getSession() 별도 호출 불필요 (타이밍 race condition 방지)
   useEffect(() => {
     const supabase = createClient();
+    let mounted = true;
 
-    async function fetchProfile() {
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      if (!authSession?.user) { setSession(null); return; }
+    async function resolveSession(user: { email?: string | null } | null) {
+      if (!mounted) return;
+      if (!user?.email) { setSession(null); return; }
 
-      if (authSession.user.email === SUPERADMIN_EMAIL) {
+      if (user.email === SUPERADMIN_EMAIL) {
         setSession({ name: "관리자", grade: "platinum", role: "superadmin" });
         return;
       }
 
       const { data } = await supabase.rpc("qh_get_my_profile");
+      if (!mounted) return;
       const profile = data?.[0];
       if (profile) {
         setSession({
@@ -85,9 +89,10 @@ export default function PillHeader() {
       }
     }
 
-    fetchProfile();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => fetchProfile());
-    return () => subscription.unsubscribe();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => { resolveSession(session?.user ?? null); }
+    );
+    return () => { mounted = false; subscription.unsubscribe(); };
   }, []);
 
   useEffect(() => {
