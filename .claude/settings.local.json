@@ -74,7 +74,15 @@
       "Bash(dir \"C:\\\\Users\\\\user\\\\nc-manager\\\\lib\" /s /b)",
       "Bash(dir \"C:\\\\Users\\\\user\\\\nc-manager\\\\app\" /b)",
       "Bash(dir \"C:\\\\Users\\\\user\\\\nc-manager\\\\types\" /b)",
-      "Bash(dir \"C:\\\\Users\\\\user\\\\nc-manager\\\\app\\\\[locale]\\\\\\(app\\)\" /b)"
+      "Bash(dir \"C:\\\\Users\\\\user\\\\nc-manager\\\\app\\\\[locale]\\\\\\(app\\)\" /b)",
+      "WebFetch(domain:auditsay.com)",
+      "WebFetch(domain:nc-manager-chi.vercel.app)",
+      "WebFetch(domain:apqpmanager.com)",
+      "WebFetch(domain:gaugemanager.com)",
+      "WebFetch(domain:change-manager-self.vercel.app)",
+      "WebFetch(domain:nc-manager.vercel.app)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\user\\\\auditsay\" -Force)",
+      "Bash(Select-Object Name, FullName)"
     ]
   }
 }
