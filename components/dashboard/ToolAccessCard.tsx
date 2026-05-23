@@ -36,9 +36,7 @@ export default function ToolAccessCard({ tool, unlocked, currentGrade }: ToolAcc
             ))}
           </ul>
           <a
-            href={tool.href}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={`/api/sso/${tool.id}`}
             className="inline-flex items-center gap-1.5 text-sm font-semibold bg-brand-orange text-white rounded-full px-4 py-2 hover:bg-brand-orange-hover transition-all hover:-translate-y-0.5 duration-200"
           >
             이용하기
