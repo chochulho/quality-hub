@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Quality Hub
 
-## Getting Started
+품질 실무자가 IATF 16949·품질기술사 시험·실무 도구를 한 곳에서 만나는 지식 베이스.
 
-First, run the development server:
+## 기술 스택
+
+- **Next.js 15** (App Router, Server Components)
+- **TypeScript** (strict mode)
+- **Tailwind CSS v4** + shadcn/ui
+- **MDX** (`@next/mdx` + `next-mdx-remote`)
+- **Vercel** 배포
+
+## 로컬 실행
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 [http://localhost:3000](http://localhost:3000) 확인.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 콘텐츠 추가
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 학습 노트 추가
 
-## Learn More
+`content/learn/<카테고리>/<슬러그>.mdx` 파일 생성:
 
-To learn more about Next.js, take a look at the following resources:
+```yaml
+---
+title: 제목
+description: 한 줄 설명
+category: spc          # iatf-16949 | iso-9001 | spc | msa | fmea | qe-exam
+tags: [태그1, 태그2]
+exam_topic: true       # 품질기술사 시험 출제 영역이면 true
+iatf_clause: "8.3.5"  # 관련 IATF 조항 (선택)
+updated: 2026-05-16
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+본문을 Markdown/MDX 형식으로 작성하세요.
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+파일 저장 시 자동으로 `/learn/<카테고리>/<슬러그>` 라우팅됩니다.
 
-## Deploy on Vercel
+### 블로그 글 추가
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`content/blog/<슬러그>.mdx` 파일 생성:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```yaml
+---
+title: 글 제목
+description: 설명
+category: 품질일반
+date: 2026-05-16
+tags: [태그]
+---
+
+본문
+```
+
+## 배포
+
+Vercel에 GitHub 저장소를 연결하면 자동 배포됩니다.
+
+1. [Vercel](https://vercel.com)에서 프로젝트 Import
+2. GitHub 저장소 연결
+3. 기본 설정으로 Deploy
+
+## 자매 사이트
+
+| 사이트 | 역할 |
+|---|---|
+| [auditsay.com](https://auditsay.com) | IATF·ISO 심사 SaaS |
+| [apqpmanager.com](https://apqpmanager.com) | APQP 5문서 관리 SaaS |
+| [gaugemanager.com](https://gaugemanager.com) | 게이지 관리 SaaS |

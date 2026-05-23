@@ -1,0 +1,63 @@
+---
+title: 공정능력지수 Cp/Cpk
+description: SPC의 핵심 지표인 공정능력지수의 정의, 계산, 해석 기준을 정리합니다.
+category: capability
+tags: [공정능력, Cp, Cpk, Pp, Ppk, SPC, 통계적공정관리]
+exam_topic: true
+iatf_clause: "8.3.5"
+related_tool: gaugemanager
+tool_href: /capability
+tool_label: 공정능력 분석기에서 직접 계산해보기 (Cp/Cpk/PPM)
+updated: 2026-05-17
+---
+
+## 공정능력지수란?
+
+공정능력지수(Process Capability Index)는 공정이 규격(Specification)을 얼마나 잘 충족하는지를 나타내는 통계적 지표입니다. 품질기술사 시험에서 단골 출제 항목이며, 실무에서도 IATF 16949 조항 8.3.5(공정능력 검증)에서 요구합니다.
+
+## Cp (공정능력지수)
+
+Cp는 공정 변동 대비 규격 폭의 비율입니다.
+
+```
+Cp = (USL - LSL) / (6σ)
+```
+
+- **USL**: 규격 상한 (Upper Specification Limit)
+- **LSL**: 규격 하한 (Lower Specification Limit)
+- **σ**: 공정 표준편차
+
+**Cp의 한계**: Cp는 공정 산포만 고려하고, 공정 중심이 규격 중심과 일치하는지는 반영하지 않습니다.
+
+## Cpk (수정 공정능력지수)
+
+Cpk는 공정 중심(평균)의 편향(Bias)을 함께 고려합니다.
+
+```
+Cpk = min(Cpu, Cpl)
+Cpu = (USL - X̄) / (3σ)
+Cpl = (X̄ - LSL) / (3σ)
+```
+
+Cpk는 항상 Cp보다 작거나 같습니다 (Cpk ≤ Cp).
+
+## 해석 기준
+
+| 값 | 해석 |
+|---|---|
+| Cpk &lt; 1.00 | 공정 불합격 — 즉시 개선 필요 |
+| 1.00 ≤ Cpk &lt; 1.33 | 조건부 합격 — 주의 필요 |
+| 1.33 ≤ Cpk &lt; 1.67 | 합격 (일반 기준) |
+| Cpk ≥ 1.67 | 우수 (IATF 신규 공정 기준) |
+
+**IATF 16949 기준**: 신규 공정은 Cpk ≥ 1.67, 양산 공정은 Cpk ≥ 1.33이 일반적인 고객 요구사항입니다.
+
+[TODO: 구체적인 계산 예시 추가]
+
+## Cp vs Cpk 비교
+
+[TODO: Cp와 Cpk가 다른 경우 그래프 및 설명 추가]
+
+## 관련 도구
+
+실무에서 측정 데이터를 수집하고 MSA를 통해 측정 시스템 변동을 확인한 후 공정능력을 계산해야 합니다. [Gauge Manager](https://gaugemanager.com)에서 MSA 분석부터 공정능력 계산까지 지원합니다.

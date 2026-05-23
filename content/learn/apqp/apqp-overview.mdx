@@ -1,0 +1,173 @@
+---
+title: APQP (사전 제품 품질 계획)
+description: APQP 5단계 프로세스와 5대 핵심 문서(DFMEA, PFMEA, Control Plan, MSA, SPC)의 관계, PPAP와의 연결을 정리합니다.
+category: apqp
+tags: [APQP, PPAP, DFMEA, PFMEA, 관리계획서, ControlPlan, 자동차품질]
+exam_topic: true
+iatf_clause: "8.3.4.1"
+related_tool: apqpmanager
+updated: 2026-05-17
+---
+
+## APQP란?
+
+APQP(Advanced Product Quality Planning, 사전 제품 품질 계획)는 **신제품 개발 또는 공정 변경 시 품질 목표를 사전에 계획하고 단계별로 검증**하는 구조화된 방법론입니다. AIAG(Automotive Industry Action Group)에서 발행한 APQP 매뉴얼이 기준입니다.
+
+IATF 16949 조항 **8.3.4.1**에서 APQP 프로세스(또는 동등한 접근법) 적용을 요구합니다.
+
+**목적**: 신제품의 고객 요구사항을 충족하고, 개발 일정 내 양산 준비를 완료하기 위해 리스크를 조기 식별하고 예방 조치를 수립합니다.
+
+---
+
+## APQP 5단계
+
+### 1단계: 계획 및 정의 (Plan & Define)
+
+고객 요구사항을 이해하고 프로젝트 범위와 목표를 수립합니다.
+
+**주요 산출물**:
+- 설계 목표 (Design Goals)
+- 신뢰성 및 품질 목표
+- 예비 자재 명세서 (BOM)
+- 예비 공정 흐름도
+- 특별 특성 목록 (CC/SC 초안)
+- 제품 보증 계획
+
+### 2단계: 제품 설계 및 개발 (Product Design & Development)
+
+설계를 구체화하고 설계 리스크를 분석합니다.
+
+**주요 산출물**:
+- **DFMEA** (설계 고장 유형 및 영향 분석)
+- 설계 검증 계획 및 보고서 (DVP&R)
+- 설계 검토 (Design Review)
+- 엔지니어링 도면 및 사양
+- 제조 가능성 평가 (DFM/DFA)
+- 시작품 제작 관리 계획서
+
+### 3단계: 공정 설계 및 개발 (Process Design & Development)
+
+제조 공정을 설계하고 공정 리스크를 분석합니다.
+
+**주요 산출물**:
+- **PFMEA** (공정 고장 유형 및 영향 분석)
+- **관리 계획서 — 사전 양산(Pre-Launch Control Plan)**
+- 공정 흐름도 (Process Flow Diagram)
+- 작업 표준서 (Work Instructions)
+- 설비·치공구 계획
+- 측정 시스템 분석 계획 (MSA 계획)
+- 패키징 사양
+
+### 4단계: 제품 및 공정 유효성 확인 (Product & Process Validation)
+
+시험 양산을 통해 제품과 공정이 요구사항을 충족하는지 검증합니다.
+
+**주요 산출물**:
+- **생산 시험 가동 (Production Trial Run)**
+- **MSA** — 게이지 R&R 실시
+- **초기 공정능력 연구** — Ppk/Cpk 측정
+- **관리 계획서 — 양산(Production Control Plan)**
+- 외관 승인 보고서 (AAR)
+- PPAP 제출 패키지 준비
+
+### 5단계: 피드백·평가 및 시정 조치 (Feedback, Assessment & Corrective Action)
+
+양산 초기 모니터링과 지속 개선입니다.
+
+**주요 산출물**:
+- 납품 성과 평가 (PPM, 불량률)
+- 고객 만족도 모니터링
+- 경험 교훈(Lessons Learned) 문서화
+- 다음 프로젝트 APQP 반영
+
+---
+
+## 5대 핵심 문서와 단계별 연결
+
+```
+단계 1          단계 2          단계 3          단계 4
+계획 및 정의  →  제품 설계  →  공정 설계  →  유효성 확인
+                  ↓               ↓               ↓
+                DFMEA          PFMEA         MSA 실시
+                              Control Plan   초기 공정능력(Ppk)
+                              (사전)         Control Plan(양산)
+                              Process Flow
+```
+
+| 문서 | 단계 | 목적 |
+|---|---|---|
+| **DFMEA** | 2단계 | 설계 리스크 분석 및 예방 조치 |
+| **PFMEA** | 3단계 | 공정 리스크 분석, CC/SC → Control Plan 연결 |
+| **Control Plan** | 3~4단계 | 공정 파라미터·특성 관리 방법 명세 |
+| **MSA** | 4단계 | 측정 시스템 적합성 검증 (%GRR) |
+| **SPC / 공정능력** | 4~5단계 | 양산 공정의 통계적 안정성 확인 |
+
+---
+
+## 게이트웨이 (Gateway) 관리
+
+각 단계가 완료되면 **게이트웨이 검토(Gate Review)** 를 통해 다음 단계 진행 여부를 결정합니다.
+
+```
+단계 1 완료 → Gate 1 → 단계 2 진행 승인?
+단계 2 완료 → Gate 2 → 단계 3 진행 승인?
+...
+```
+
+게이트웨이에서 검토하는 항목 예시:
+- 산출물 완료 여부 체크리스트
+- 미결 사항(Open Issue) 목록
+- 리스크 수준 평가
+
+---
+
+## PPAP과의 관계
+
+PPAP(Production Part Approval Process, 생산 부품 승인 프로세스)는 **APQP 4단계의 산출물을 고객에게 제출하여 양산 승인을 받는 프로세스**입니다.
+
+### PPAP 18개 요소 (AIAG PPAP 4판)
+
+| # | 요소 | APQP 연결 |
+|---|---|---|
+| 1 | 도면 및 엔지니어링 사양 | 2단계 |
+| 2 | 설계 변경 문서 | 2단계 |
+| 3 | 고객 엔지니어링 승인 | 2단계 |
+| 4 | **DFMEA** | 2단계 |
+| 5 | 공정 흐름도 | 3단계 |
+| 6 | **PFMEA** | 3단계 |
+| 7 | **관리 계획서** | 3~4단계 |
+| 8 | MSA 연구 보고서 | 4단계 |
+| 9 | 치수 결과 | 4단계 |
+| 10 | 재료·성능 시험 결과 | 4단계 |
+| 11 | **초기 공정능력 연구 (Ppk)** | 4단계 |
+| 12 | 적격 실험실 문서 | 4단계 |
+| 13 | 외관 승인 보고서 (AAR) | 4단계 |
+| 14 | 시작품 샘플 | 4단계 |
+| 15 | 마스터 샘플 | 4단계 |
+| 16 | 검사 보조 기구 | 3~4단계 |
+| 17 | 고객별 요구사항 | 전 단계 |
+| 18 | **PSW (Part Submission Warrant)** | 최종 |
+
+### PPAP 제출 수준 (Level 1~5)
+
+| 수준 | 제출 내용 |
+|---|---|
+| Level 1 | PSW만 제출 (고객 보관) |
+| Level 2 | PSW + 선택 샘플 + 제한 서류 |
+| Level 3 | PSW + 샘플 + 전체 지원 서류 (기본) |
+| Level 4 | PSW + 고객이 지정한 요구사항 |
+| Level 5 | PSW + 샘플 + 현장 검토 |
+
+---
+
+## IATF 16949 연관 조항
+
+- **8.3.4.1**: 모니터링, APQP 활동
+- **8.3.3.3**: DFMEA 수행
+- **8.3.5.2**: PFMEA 수행
+- **8.5.1.1**: 관리 계획서 작성 및 유지
+- **8.6.5**: 법적 및 규정 적합성 (PPAP 포함)
+
+## 관련 도구
+
+DFMEA, PFMEA, 관리 계획서, MSA, SPC 5대 문서를 연동하여 PPAP 패키지를 관리해야 한다면 [APQP Manager](https://apqpmanager.com)가 도움이 됩니다.

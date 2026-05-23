@@ -1,0 +1,132 @@
+---
+title: IATF 16949 개요 — 탄생 배경과 구조
+description: 자동차 산업 품질경영시스템 국제 표준 IATF 16949의 탄생 배경, 전체 구조, 핵심 도구(5 Core Tools)를 정리합니다.
+category: qms
+tags: [IATF16949, 자동차, QMS, 코어도구, APQP, PPAP, FMEA, SPC, MSA]
+exam_topic: true
+iatf_clause: "4.0"
+related_tool: auditsay
+tool_href: https://auditsay.com
+tool_label: AuditSay로 IATF 16949 심사 체크리스트·보고서 관리하기
+updated: 2026-05-17
+---
+
+## IATF 16949란?
+
+IATF 16949는 **자동차 산업 특화 품질경영시스템(QMS) 국제 표준**이다. ISO 9001:2015를 기반으로 자동차 산업의 특수 요구사항을 추가한 규격으로, 전 세계 자동차 OEM 공급망에서 가장 널리 요구되는 인증이다.
+
+> **현재 버전**: IATF 16949:2016 (2016년 발행, ISO 9001:2015 기반)
+
+---
+
+## 탄생 배경
+
+### QS-9000 시대 (1994~2006)
+
+1990년대 초 GM·Ford·Chrysler(빅3)는 각자 다른 공급자 품질 요건을 운용하고 있었다. 공급자 입장에서는 고객사마다 별도 시스템을 구축해야 하는 부담이 컸다. 이 문제를 해결하기 위해 **QS-9000**이 탄생했다(1994).
+
+### IATF 설립과 ISO/TS 16949 (1999~2016)
+
+IATF(International Automotive Task Force)는 주요 자동차 OEM과 그 협회들이 설립한 단체다. QS-9000을 국제 표준으로 확장하기 위해 ISO와 협력해 **ISO/TS 16949**를 발행했다(1999).
+
+| 버전 | 연도 | 특징 |
+|------|------|------|
+| QS-9000 | 1994 | GM·Ford·Chrysler 공동 |
+| ISO/TS 16949:1999 | 1999 | IATF + ISO 공동, 유럽 OEM 참여 |
+| ISO/TS 16949:2002 | 2002 | 2차 개정 |
+| ISO/TS 16949:2009 | 2009 | ISO 9001:2008 기반 |
+| **IATF 16949:2016** | 2016 | ISO 9001:2015 기반, ISO/TS 폐지 |
+
+2016년 개정에서 표준 명칭이 **ISO/TS → IATF 16949**로 변경됐다. ISO 표준이 아닌 IATF 자체 규격임을 명확히 한 것이다.
+
+---
+
+## IATF 회원사
+
+| 조직 | 대표 OEM |
+|------|---------|
+| AIAG (미국) | GM, Ford, Stellantis |
+| VDA (독일) | BMW, Mercedes-Benz, Volkswagen |
+| ANFIA (이탈리아) | FCA (Stellantis) |
+| FIEV (프랑스) | Renault, PSA (Stellantis) |
+| SMMT (영국) | Jaguar Land Rover |
+
+---
+
+## 규격 구조 (HLS 기반)
+
+IATF 16949:2016은 ISO의 **HLS(High Level Structure, 공통 상위 구조)** 조항 1~10을 따른다. 이 덕분에 ISO 14001·ISO 45001과 통합 운영이 쉽다.
+
+| 조항 | 제목 | IATF 추가 요건 수 |
+|------|------|----------------|
+| 1~3 | 적용 범위·참조·용어 | — |
+| 4 | 조직의 상황 | CSR, 기업 책임 |
+| 5 | 리더십 | 제품 안전, 기업 책임 |
+| 6 | 기획 | PFMEA, 우발 상황 계획 |
+| 7 | 지원 | OJT, 심사원 자격 |
+| **8** | **운용** | **가장 많은 추가 요건** (APQP, PPAP, Control Plan 등) |
+| 9 | 성과 평가 | MSA, SPC, 3분류 내부심사 |
+| 10 | 개선 | 8D, 수평전개 |
+
+---
+
+## 5가지 핵심 도구 (Core Tools)
+
+IATF 16949는 다음 5가지 핵심 도구의 활용을 요구한다. 각 도구는 AIAG·VDA 발행 매뉴얼을 따른다.
+
+| # | 도구 | 전체명 | 주요 활용 단계 | 연관 조항 |
+|---|------|-------|------------|---------|
+| 1 | **APQP** | Advanced Product Quality Planning | 신제품 개발 전 과정 | 8.3 |
+| 2 | **PPAP** | Production Part Approval Process | 양산 전 고객 승인 | 8.3.4, 8.6.1 |
+| 3 | **FMEA** | Failure Mode and Effects Analysis | 설계·공정 위험 분석 | 6.1, 8.3, 8.5 |
+| 4 | **MSA** | Measurement System Analysis | 측정 시스템 검증 | 7.1.5.1, 9.1.1 |
+| 5 | **SPC** | Statistical Process Control | 공정 모니터링 | 9.1.1 |
+
+### 각 도구의 역할
+
+**APQP**: 신제품 개발을 5단계(계획→제품설계→공정설계→유효성확인→피드백)로 관리. 다른 4개 도구의 실행 타임라인 역할.
+
+**PPAP**: 양산 전 고객에게 18개 항목으로 제품·공정 적합성을 증명하는 제출 패키지. 승인 없이는 양산 불가.
+
+**FMEA**: 잠재적 고장 모드를 사전에 파악해 위험 우선순위(RPN 또는 AP)를 결정. DFMEA(설계)·PFMEA(공정)·FMEA-MSR(시스템 보완)로 구분.
+
+**MSA**: 측정 장비·측정자·측정 방법의 변동이 전체 공정 변동에 미치는 영향 분석. GR&R(게이지 반복성·재현성)이 핵심.
+
+**SPC**: 관리도를 이용해 공정이 통계적 관리 상태(안정)에 있는지 실시간 모니터링. 특별특성에 의무 적용.
+
+---
+
+## CSR(고객 특수 요구사항)
+
+IATF 16949의 가장 큰 특징 중 하나. IATF 기본 요건 외에 각 OEM은 자사 추가 요구사항(CSR)을 발행하며, 공급자는 이를 식별하고 QMS에 통합해야 한다.
+
+| OEM | CSR 예시 |
+|-----|---------|
+| GM | BIQS(Business Improvement Quality System), GP-12 |
+| Ford | Ford CSR, Ford Q1 |
+| Stellantis | Stellantis Supplier Quality Requirements |
+| BMW | BMW Group SQA Requirements |
+| 현대·기아 | HTMS (Hyundai-Kia QMS Requirements) |
+
+**규칙**: CSR이 IATF 요건보다 엄격하면 CSR을 따른다.
+
+---
+
+## 인증 취득 절차
+
+```
+Gap 분석 → QMS 구축 → 3개월 이상 운영 → 내부심사 → 경영검토 → CB 심사
+```
+
+- **1단계 심사**: 문서 검토 (매뉴얼, 절차서, 적용 범위 확인)
+- **2단계 심사**: 현장 심사 (프로세스 실행, 기록 확인)
+- **사후심사**: 매년 1~2회 (인증 유지)
+- **갱신심사**: 3년마다 (인증 연장)
+
+> IATF 16949 심사에서 가장 많은 부적합이 발생하는 영역: 8조 운용(APQP·PPAP·Control Plan·특별특성), 9.2 내부심사(3분류 미실시), 7.2 역량(OJT 기록 미비).
+
+---
+
+## 심사 준비 관련 도구
+
+IATF 16949 내부심사 계획·현장 기록·보고서 발행·부적합 추적을 디지털로 통합 관리하려면 [AuditSay](https://auditsay.com)가 지원합니다. IATF 조항별 체크리스트 라이브러리와 심사 보고서 자동화 기능을 제공합니다.
