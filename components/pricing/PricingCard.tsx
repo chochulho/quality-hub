@@ -64,32 +64,29 @@ export default function PricingCard({ tier, annual }: PricingCardProps) {
           )}
         </div>
 
-        {/* 도구 접근 현황 */}
+        {/* 도구 접근 현황 — 컬러 가로 칩 */}
         {tier.id !== 'free' && (
-          <div className={`mb-5 rounded-xl p-4 ${isHighlight ? 'bg-white/10' : 'bg-muted'}`}>
+          <div className={`mb-5 rounded-xl p-3 ${isHighlight ? 'bg-white/10' : 'bg-muted'}`}>
             <p className={`text-xs font-semibold mb-2 ${isHighlight ? 'text-white/70' : 'text-muted-foreground'}`}>
               포함 도구 ({unlockedIds.length}/5)
             </p>
-            <div className="space-y-1">
+            <div className="flex flex-wrap gap-1.5">
               {ALL_TOOL_IDS.map((id) => {
                 const included = unlockedIds.includes(id)
+                const tool = TOOLS[id]
                 return (
-                  <div key={id} className="flex items-center gap-2">
-                    <span className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${
+                  <span
+                    key={id}
+                    className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap ${
                       included
-                        ? isHighlight ? 'bg-brand-orange' : 'bg-brand-orange'
-                        : isHighlight ? 'bg-white/20' : 'bg-border'
-                    }`}>
-                      {included && <Check className="h-2.5 w-2.5 text-white" />}
-                    </span>
-                    <span className={`text-xs ${
-                      included
-                        ? isHighlight ? 'text-white' : 'text-foreground'
-                        : isHighlight ? 'text-white/40' : 'text-muted-foreground line-through'
-                    }`}>
-                      {TOOLS[id].name}
-                    </span>
-                  </div>
+                        ? `${tool.color} text-white`
+                        : isHighlight
+                        ? 'bg-white/10 text-white/30 line-through'
+                        : 'bg-border text-muted-foreground/60 line-through'
+                    }`}
+                  >
+                    {tool.name}
+                  </span>
                 )
               })}
             </div>
