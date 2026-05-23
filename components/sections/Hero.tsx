@@ -57,7 +57,7 @@ export default function Hero() {
             {/* Sister site tool chips — grades.ts에서 데이터 자동 동기화 */}
             <div className="mt-10">
               <span className="text-xs text-muted-foreground block mb-2">포함 도구</span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                 {ALL_TOOL_IDS.map((id) => {
                   const tool = TOOLS[id];
                   return (
@@ -66,7 +66,7 @@ export default function Hero() {
                       href={tool.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`inline-flex items-center text-xs font-medium text-white ${tool.color} rounded-full px-3 py-1.5 hover:opacity-85 transition-opacity whitespace-nowrap`}
+                      className={`inline-flex items-center text-xs font-medium text-white ${tool.color} rounded-full px-3 py-1.5 hover:opacity-85 transition-opacity whitespace-nowrap shrink-0`}
                     >
                       {tool.name}
                     </a>

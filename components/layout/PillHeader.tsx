@@ -133,7 +133,7 @@ export default function PillHeader() {
               </li>
 
               {/* 도구 드롭다운 */}
-              <li>
+              <li className="relative">
                 <button
                   onClick={() => toggle("tools")}
                   className={`flex items-center gap-1 text-sm font-medium transition-colors ${
@@ -149,6 +149,74 @@ export default function PillHeader() {
                     }`}
                   />
                 </button>
+
+                {activeDropdown === "tools" && (
+                  <div className="absolute top-[calc(100%+16px)] left-1/2 -translate-x-1/2 w-[540px] bg-white border border-border rounded-2xl shadow-xl p-5 z-50">
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* SaaS 도구 */}
+                      <div>
+                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                          SaaS 도구
+                        </p>
+                        <ul className="space-y-2.5">
+                          {ALL_TOOL_IDS.map((id) => {
+                            const tool = TOOLS[id];
+                            return (
+                              <li key={id}>
+                                <a
+                                  href={tool.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={() => setActiveDropdown(null)}
+                                  className="flex items-center gap-2.5 group"
+                                >
+                                  <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${TOOL_DOT[id]}`} />
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium text-foreground group-hover:text-brand-navy transition-colors leading-none">
+                                      {tool.name}
+                                    </p>
+                                    <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                                      {tool.tagline}
+                                    </p>
+                                  </div>
+                                  <ExternalLink className="h-3 w-3 text-muted-foreground ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </a>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+
+                      {/* 내장 도구 */}
+                      <div>
+                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                          내장 도구 <span className="normal-case font-normal">(무료)</span>
+                        </p>
+                        <ul className="space-y-2.5">
+                          {INTERNAL_TOOLS.map((tool) => (
+                            <li key={tool.href}>
+                              <Link
+                                href={tool.href}
+                                onClick={() => setActiveDropdown(null)}
+                                className="flex items-center gap-2.5 group"
+                              >
+                                <span className="h-2.5 w-2.5 rounded-full shrink-0 bg-muted-foreground/30" />
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-foreground group-hover:text-brand-navy transition-colors leading-none">
+                                    {tool.label}
+                                  </p>
+                                  <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                                    {tool.desc}
+                                  </p>
+                                </div>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </li>
 
               {/* 블로그 */}
@@ -174,7 +242,7 @@ export default function PillHeader() {
               </li>
 
               {/* 지원 드롭다운 */}
-              <li>
+              <li className="relative">
                 <button
                   onClick={() => toggle("support")}
                   className={`flex items-center gap-1 text-sm font-medium transition-colors ${
@@ -190,6 +258,25 @@ export default function PillHeader() {
                     }`}
                   />
                 </button>
+
+                {activeDropdown === "support" && (
+                  <div className="absolute top-[calc(100%+16px)] right-0 w-52 bg-white border border-border rounded-2xl shadow-xl p-2 z-50">
+                    <ul className="space-y-0.5">
+                      {SUPPORT_LINKS.map((link) => (
+                        <li key={link.href}>
+                          <Link
+                            href={link.href}
+                            onClick={() => setActiveDropdown(null)}
+                            className="flex flex-col px-3 py-2.5 rounded-xl hover:bg-muted transition-colors"
+                          >
+                            <span className="text-sm font-medium text-foreground">{link.label}</span>
+                            <span className="text-[11px] text-muted-foreground mt-0.5">{link.desc}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </li>
             </ul>
 
@@ -249,94 +336,6 @@ export default function PillHeader() {
             </div>
           </nav>
 
-          {/* ── 도구 드롭다운 패널 ── */}
-          {activeDropdown === "tools" && (
-            <div className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-[540px] bg-white border border-border rounded-2xl shadow-xl p-5 z-50">
-              <div className="grid grid-cols-2 gap-6">
-                {/* SaaS 도구 */}
-                <div>
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    SaaS 도구
-                  </p>
-                  <ul className="space-y-2.5">
-                    {ALL_TOOL_IDS.map((id) => {
-                      const tool = TOOLS[id];
-                      return (
-                        <li key={id}>
-                          <a
-                            href={tool.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => setActiveDropdown(null)}
-                            className="flex items-center gap-2.5 group"
-                          >
-                            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${TOOL_DOT[id]}`} />
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-foreground group-hover:text-brand-navy transition-colors leading-none">
-                                {tool.name}
-                              </p>
-                              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                                {tool.tagline}
-                              </p>
-                            </div>
-                            <ExternalLink className="h-3 w-3 text-muted-foreground ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </a>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-
-                {/* 내장 도구 */}
-                <div>
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    내장 도구 <span className="normal-case font-normal">(무료)</span>
-                  </p>
-                  <ul className="space-y-2.5">
-                    {INTERNAL_TOOLS.map((tool) => (
-                      <li key={tool.href}>
-                        <Link
-                          href={tool.href}
-                          onClick={() => setActiveDropdown(null)}
-                          className="flex items-center gap-2.5 group"
-                        >
-                          <span className="h-2.5 w-2.5 rounded-full shrink-0 bg-muted-foreground/30" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground group-hover:text-brand-navy transition-colors leading-none">
-                              {tool.label}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                              {tool.desc}
-                            </p>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── 지원 드롭다운 패널 ── */}
-          {activeDropdown === "support" && (
-            <div className="absolute top-[calc(100%+8px)] right-0 w-52 bg-white border border-border rounded-2xl shadow-xl p-2 z-50">
-              <ul className="space-y-0.5">
-                {SUPPORT_LINKS.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      onClick={() => setActiveDropdown(null)}
-                      className="flex flex-col px-3 py-2.5 rounded-xl hover:bg-muted transition-colors"
-                    >
-                      <span className="text-sm font-medium text-foreground">{link.label}</span>
-                      <span className="text-[11px] text-muted-foreground mt-0.5">{link.desc}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       </header>
 
