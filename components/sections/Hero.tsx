@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import HeroIllustration from "@/components/illustrations/HeroIllustration";
+import { ALL_TOOL_IDS, TOOLS } from "@/lib/auth/grades";
 
 export default function Hero() {
   return (
@@ -53,26 +54,25 @@ export default function Hero() {
               </Link>
             </div>
 
-            {/* Sister site tool chips */}
-            <div className="mt-10 flex items-center gap-3 flex-wrap">
-              <span className="text-xs text-muted-foreground shrink-0">포함 도구:</span>
-              {[
-                { href: "https://auditsay.com", label: "AuditSay" },
-                { href: "https://apqpmanager.com", label: "APQP Manager" },
-                { href: "https://gaugemanager.com", label: "Gauge Manager" },
-                { href: "https://nc-manager-chi.vercel.app", label: "NC Manager" },
-                { href: "https://change-manager-self.vercel.app", label: "4M Change Manager" },
-              ].map((site) => (
-                <a
-                  key={site.href}
-                  href={site.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors border border-border rounded-full px-3 py-1.5"
-                >
-                  {site.label}
-                </a>
-              ))}
+            {/* Sister site tool chips — grades.ts에서 데이터 자동 동기화 */}
+            <div className="mt-10">
+              <span className="text-xs text-muted-foreground block mb-2">포함 도구</span>
+              <div className="flex flex-wrap gap-2">
+                {ALL_TOOL_IDS.map((id) => {
+                  const tool = TOOLS[id];
+                  return (
+                    <a
+                      key={id}
+                      href={tool.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center text-xs font-medium text-white ${tool.color} rounded-full px-3 py-1.5 hover:opacity-85 transition-opacity whitespace-nowrap`}
+                    >
+                      {tool.name}
+                    </a>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
