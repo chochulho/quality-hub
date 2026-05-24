@@ -82,7 +82,13 @@
       "WebFetch(domain:change-manager-self.vercel.app)",
       "WebFetch(domain:nc-manager.vercel.app)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\user\\\\auditsay\" -Force)",
-      "Bash(Select-Object Name, FullName)"
+      "Bash(Select-Object Name, FullName)",
+      "Bash(mkdir -p \"c:/Users/user/quality-hub/app/api/sso/[tool]\")",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\user\\\\auditsay\\\\app\" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'route\\\\.ts' } | Select-Object FullName)",
+      "Bash(Out-String -Width 200)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\user\\quality-hub\\app\\api\\sso"
     ]
   }
 }

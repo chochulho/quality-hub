@@ -129,21 +129,22 @@ const guide = [
   },
 ];
 
+// v2: /calculators/* 경로로 재정렬 (VSM/Kanban 시험 학습 코너로 이동)
 const internalTools = [
   {
-    href: "/capability",
+    href: "/calculators/spc",
     icon: BarChart3,
-    label: "공정능력 분석기",
-    sublabel: "Cp / Cpk / Pp / Ppk",
-    desc: "LSL/USL과 측정 데이터를 입력하면 미니텝 스타일 결과를 즉시 확인. 계량형·계수형 모두 지원. Excel·PDF 내보내기 포함.",
+    label: "SPC 분석기",
+    sublabel: "공정능력 (Cp/Cpk) · 관리도",
+    desc: "데이터 붙여넣기만 하면 공정능력 분석과 관리도를 즉시 확인. Cp/Cpk/Pp/Ppk + X̄-R/I-MR/p 관리도.",
     status: "사용 가능",
   },
   {
-    href: "/qc7",
+    href: "/calculators/qc7",
     icon: ListChecks,
     label: "QC 7가지 도구",
-    sublabel: "체크시트 / 파레토 / 특성요인도 ...",
-    desc: "체크시트, 히스토그램, 파레토 차트, 특성요인도, 산포도, 층별, 관리도. 직접 실습하고 Excel로 다운로드.",
+    sublabel: "파레토 · 히스토그램 · 특성요인도",
+    desc: "체크시트, 히스토그램, 파레토 차트, 특성요인도, 산포도, 층별. 직접 실습하고 Excel로 다운로드.",
     status: "사용 가능",
   },
   {
@@ -151,7 +152,7 @@ const internalTools = [
     icon: Network,
     label: "신 QC 7가지 도구",
     sublabel: "친화도 / 연관도 / 애로우 ...",
-    desc: "친화도, 연관도, 계통도, 매트릭스도, PDPC, 애로우 다이어그램(CPM). 기획·관리 단계 실습 도구.",
+    desc: "친화도, 연관도, 계통도, 매트릭스도, PDPC, 애로우 다이어그램(CPM). 품질기술사 시험 대비 실습.",
     status: "사용 가능",
   },
   {
@@ -159,15 +160,7 @@ const internalTools = [
     icon: Grid3x3,
     label: "QFD 매트릭스",
     sublabel: "품질기능전개 / 품질의 집",
-    desc: "고객 요구사항을 설계·부품·공정 특성으로 단계별 전개. 3단계 폭포 구조, 지붕 상관, 가중 점수 자동 계산, Excel 양식 다운로드.",
-    status: "사용 가능",
-  },
-  {
-    href: "/vsm",
-    icon: Workflow,
-    label: "가치흐름도 (VSM)",
-    sublabel: "Value Stream Map / 리드타임 분석",
-    desc: "공정 데이터를 입력하면 현재·미래상태 VSM을 자동 생성. 리드타임·NVA 비율 계산, 병목 공정 식별, Excel 내보내기.",
+    desc: "고객 요구사항을 설계·부품·공정 특성으로 단계별 전개. 3단계 폭포 구조, 가중 점수 자동 계산.",
     status: "사용 가능",
   },
   {
@@ -175,7 +168,7 @@ const internalTools = [
     icon: Users,
     label: "다기능도 (Skill Matrix)",
     sublabel: "적격성 관리 / 인원별·공정별 목표",
-    desc: "공정별·인원별 스킬 레벨을 입력하고 목표 대비 GAP을 즉시 파악. ISO 9001 7.2 / IATF 16949 7.2.2 대응. Excel 다운로드 지원.",
+    desc: "공정별·인원별 스킬 레벨 입력, 목표 대비 GAP 파악. ISO 9001 7.2 / IATF 16949 7.2.2 대응.",
     status: "사용 가능",
   },
   {
@@ -209,9 +202,9 @@ export default function ToolsPage() {
         </p>
       </div>
 
-      {/* 내장 분석 도구 */}
+      {/* 무료 계산 도구 (v2) */}
       <div className="mb-16">
-        <h2 className="text-lg font-bold text-brand-navy mb-4">무료 분석 도구 (바로 사용)</h2>
+        <h2 className="text-lg font-bold text-brand-navy mb-4">무료 계산 도구 — 회원가입 없이 즉시 사용</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {internalTools.map((tool) => {
             const Icon = tool.icon;

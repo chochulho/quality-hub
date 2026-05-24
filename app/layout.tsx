@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import PillHeader from "@/components/layout/PillHeader";
-import Footer from "@/components/layout/Footer";
+// PillHeader·Footer는 각 레이아웃 그룹이 담당:
+// - (marketing)/layout.tsx → PillHeader + Footer
+// - (workspace)/layout.tsx → WorkspaceHeader
+// - (auth)/layout.tsx     → 헤더 없음 (로그인/회원가입 전용)
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,10 +41,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        {/* PillHeader는 자체적으로 클라이언트 사이드 auth 상태를 구독 */}
-        <PillHeader />
-        <main className="flex-1 pt-20">{children}</main>
-        <Footer />
+        {children}
       </body>
     </html>
   );

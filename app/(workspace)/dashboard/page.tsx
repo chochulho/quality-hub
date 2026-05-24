@@ -100,7 +100,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* 학습 콘텐츠 바로가기 */}
+      {/* 참고 자료 바로가기 */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link
           href="/learn"
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
           <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-brand-orange transition-colors" />
         </Link>
         <Link
-          href="/spc"
+          href="/calculators/spc"
           className="group flex items-center justify-between p-5 rounded-2xl border border-border bg-white hover:border-brand-navy transition-colors"
         >
           <div>
