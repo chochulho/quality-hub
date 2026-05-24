@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     }
 
     const stream = await client.messages.stream({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-3-5-haiku-20241022',
       max_tokens: 1024,
       system: scenarioDef.systemPrompt,
       messages: messages.map((m: { role: string; content: string }) => ({
@@ -124,7 +124,8 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err) {
-    console.error('FMEA demo chat error:', err)
-    return new Response(JSON.stringify({ error: 'AI 응답 실패' }), { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('FMEA demo chat error:', msg)
+    return new Response(JSON.stringify({ error: 'AI 응답 실패', detail: msg }), { status: 500 })
   }
 }
