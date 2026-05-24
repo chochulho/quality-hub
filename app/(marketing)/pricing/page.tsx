@@ -261,6 +261,16 @@ export default async function PricingPage() {
         </div>
       </div>
 
+      {/* 왜 이 가격인가? */}
+      <div className="text-center mb-10">
+        <p className="text-sm text-muted-foreground">
+          직접 QMS를 구축하면 얼마나 드는지 비교해 보셨나요?{' '}
+          <Link href="/compare" className="text-brand-orange font-medium hover:underline">
+            자체 구축 vs quality‑hub 비용 비교 →
+          </Link>
+        </p>
+      </div>
+
       {/* 하단 CTA */}
       <div className="rounded-3xl bg-brand-navy p-10 text-center">
         <p className="text-xs font-medium text-white/60 mb-2 uppercase tracking-wide">시작하기</p>
