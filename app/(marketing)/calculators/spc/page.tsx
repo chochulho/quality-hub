@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, Activity, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, Activity } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "SPC 분석기 — 공정능력 분석 · 관리도 무료 계산기",
@@ -44,15 +44,6 @@ const tools = [
     desc:         "불량률·불량 수·결점 수 이산형 데이터의 공정 이상을 탐지합니다. p, np, c, u 관리도 선택.",
     seoKeyword:   "p 관리도 부적합품률",
     available:    true,
-  },
-  {
-    href:         "#",
-    Icon:         TrendingUp,
-    label:        "샘플링 검사",
-    sublabel:     "KS Q ISO 2859 / AQL",
-    desc:         "수입검사·공정검사 샘플 수 및 합격 판정 개수(Ac/Re) 자동 산출.",
-    seoKeyword:   "AQL 샘플링 검사",
-    available:    false,
   },
 ];
 

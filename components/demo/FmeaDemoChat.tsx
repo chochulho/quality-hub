@@ -136,7 +136,24 @@ export default function FmeaDemoChat({ scenario, scenarioTitle }: Props) {
           })
         }
       } catch {
-        setMessages((prev) => prev.slice(0, -1))
+        // 사용자 메시지는 유지하고 에러 메시지를 assistant 말풍선으로 표시
+        setMessages((prev) => {
+          const last = prev[prev.length - 1]
+          // 이미 빈 assistant 버블이 추가된 경우 교체, 아니면 추가
+          if (last?.role === 'assistant' && last.content === '') {
+            const updated = [...prev]
+            updated[updated.length - 1] = {
+              role: 'assistant',
+              content: 'AI 응답 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            }
+            return updated
+          }
+          return [...prev, {
+            role: 'assistant',
+            content: 'AI 응답 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+          }]
+        })
+        if (!isAuto) setTurnCount((c) => Math.max(0, c - 1)) // 실패 시 턴 카운트 복원
       } finally {
         setLoading(false)
         setTimeout(() => textareaRef.current?.focus(), 100)

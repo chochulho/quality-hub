@@ -44,11 +44,11 @@ const CALCULATOR_TOOLS = [
     color: "text-brand-orange",
   },
   {
-    href:  null, // 준비 중
+    href:  "/calculators/fmea-demo",
     label: "FMEA 체험 데모",
-    desc:  "AI 대화형 AIAG-VDA (준비 중)",
+    desc:  "AI 대화형 AIAG-VDA",
     Icon:  FlaskConical,
-    color: "text-muted-foreground",
+    color: "text-brand-orange",
   },
 ] as const;
 
@@ -217,32 +217,21 @@ export default function PillHeader() {
                       무료 계산 도구
                     </p>
                     <ul className="space-y-1">
-                      {CALCULATOR_TOOLS.map((tool) => {
-                        const isComingSoon = tool.href === null;
-                        const content = (
-                          <div className={`flex items-start gap-3 px-3 py-2.5 rounded-xl transition-colors group ${isComingSoon ? "opacity-50 cursor-default" : "hover:bg-muted cursor-pointer"}`}>
-                            <tool.Icon className={`h-4 w-4 mt-0.5 shrink-0 ${tool.color}`} />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <p className={`text-sm font-medium leading-none mb-0.5 ${isComingSoon ? "text-muted-foreground" : "text-foreground group-hover:text-brand-navy transition-colors"}`}>
+                      {CALCULATOR_TOOLS.map((tool) => (
+                        <li key={tool.href}>
+                          <Link href={tool.href} onClick={close}>
+                            <div className="flex items-start gap-3 px-3 py-2.5 rounded-xl transition-colors group hover:bg-muted cursor-pointer">
+                              <tool.Icon className={`h-4 w-4 mt-0.5 shrink-0 ${tool.color}`} />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium leading-none mb-0.5 text-foreground group-hover:text-brand-navy transition-colors">
                                   {tool.label}
                                 </p>
-                                {isComingSoon && (
-                                  <span className="text-[10px] font-semibold bg-muted text-muted-foreground rounded-full px-1.5 py-0.5">준비 중</span>
-                                )}
+                                <p className="text-[11px] text-muted-foreground">{tool.desc}</p>
                               </div>
-                              <p className="text-[11px] text-muted-foreground">{tool.desc}</p>
                             </div>
-                          </div>
-                        );
-                        return isComingSoon ? (
-                          <li key={tool.label}>{content}</li>
-                        ) : (
-                          <li key={tool.href!}>
-                            <Link href={tool.href!} onClick={close}>{content}</Link>
-                          </li>
-                        );
-                      })}
+                          </Link>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}
