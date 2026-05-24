@@ -3,65 +3,62 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Check, X, ChevronDown, RefreshCw, Building2, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { GRADE_LABELS, PRICING_TIERS, type Grade } from '@/lib/auth/grades'
+import { PLAN_LABELS, type PlanId } from '@/lib/auth/grades'
 
-type CompanyRow = {
+type OrgRow = {
   id: string
   name: string
-  type: string
-  grade: string
+  plan_id: string
+  org_type: string
   status: string
   created_at: string
-  admin_name: string | null
-  admin_email: string | null
+  owner_email: string | null
 }
 
-const GRADES: Grade[] = ['free', 'silver', 'gold', 'platinum']
-const PAID_GRADES = PRICING_TIERS.filter((t) => t.id !== 'free').map((t) => t.id as Grade)
+const ALL_PLANS: PlanId[] = ['free', 'starter', 'team', 'business', 'enterprise']
+const PAID_PLANS: PlanId[] = ['starter', 'team', 'business', 'enterprise']
 
 export default function SuperAdminPanel() {
   const [tab, setTab] = useState<'pending' | 'all'>('pending')
-  const [companies, setCompanies] = useState<CompanyRow[]>([])
+  const [orgs, setOrgs] = useState<OrgRow[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-  const pending = companies.filter((c) => c.status === 'pending')
-  const active = companies.filter((c) => c.status === 'active')
+  const pending = orgs.filter((o) => o.status === 'pending')
+  const active  = orgs.filter((o) => o.status === 'active')
 
-  const fetchCompanies = useCallback(async () => {
+  const fetchOrgs = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const { data, error } = await supabase.rpc('qh_get_all_companies')
-    if (!error && data) setCompanies(data as CompanyRow[])
+    const { data, error } = await supabase.rpc('get_all_organizations')
+    if (!error && data) setOrgs(data as OrgRow[])
     setLoading(false)
   }, [])
 
-  useEffect(() => {
-    fetchCompanies()
-  }, [fetchCompanies])
+  useEffect(() => { fetchOrgs() }, [fetchOrgs])
 
-  async function approveCompany(id: string, grade: Grade) {
+  async function approveOrg(id: string, planId: PlanId) {
     setActionLoading(id + '-approve')
     const supabase = createClient()
-    await supabase.rpc('qh_approve_company', { p_company_id: id, p_grade: grade })
-    await fetchCompanies()
+    await supabase.rpc('approve_org', { p_org_id: id, p_plan_id: planId })
+    await fetchOrgs()
     setActionLoading(null)
   }
 
-  async function rejectCompany(id: string) {
+  async function rejectOrg(id: string) {
     if (!confirm('이 기업을 거절하고 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return
     setActionLoading(id + '-reject')
     const supabase = createClient()
-    await supabase.rpc('qh_reject_company', { p_company_id: id })
-    await fetchCompanies()
+    await supabase.rpc('reject_org', { p_org_id: id })
+    await fetchOrgs()
     setActionLoading(null)
   }
 
-  async function setGrade(id: string, grade: Grade) {
-    setActionLoading(id + '-grade')
+  async function setPlan(id: string, planId: PlanId) {
+    setActionLoading(id + '-plan')
     const supabase = createClient()
-    await supabase.rpc('qh_set_company_grade', { p_company_id: id, p_grade: grade })
-    await fetchCompanies()
+    await supabase.rpc('set_org_plan', { p_org_id: id, p_plan_id: planId })
+    await fetchOrgs()
     setActionLoading(null)
   }
 
@@ -74,7 +71,7 @@ export default function SuperAdminPanel() {
           <h1 className="text-3xl font-extrabold text-brand-navy">관리자 패널</h1>
         </div>
         <button
-          onClick={fetchCompanies}
+          onClick={fetchOrgs}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-full px-4 py-2 transition-colors"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -86,7 +83,7 @@ export default function SuperAdminPanel() {
       <div className="flex gap-1 bg-muted rounded-full p-1 w-fit mb-8">
         {([
           { key: 'pending', label: '승인 대기', icon: Building2, count: pending.length },
-          { key: 'all', label: '전체 기업', icon: Users, count: companies.length },
+          { key: 'all',     label: '전체 조직', icon: Users,     count: orgs.length },
         ] as const).map(({ key, label, icon: Icon, count }) => (
           <button
             key={key}
@@ -128,13 +125,13 @@ export default function SuperAdminPanel() {
             </div>
           ) : (
             <div className="space-y-4">
-              {pending.map((company) => (
+              {pending.map((org) => (
                 <PendingCard
-                  key={company.id}
-                  company={company}
+                  key={org.id}
+                  org={org}
                   actionLoading={actionLoading}
-                  onApprove={approveCompany}
-                  onReject={rejectCompany}
+                  onApprove={approveOrg}
+                  onReject={rejectOrg}
                 />
               ))}
             </div>
@@ -142,51 +139,47 @@ export default function SuperAdminPanel() {
         </>
       )}
 
-      {/* 전체 기업 탭 */}
+      {/* 전체 조직 탭 */}
       {!loading && tab === 'all' && (
         <div className="bg-white border border-border rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left px-5 py-3 font-semibold text-foreground">기업명</th>
-                <th className="text-left px-4 py-3 font-semibold text-foreground">관리자</th>
+                <th className="text-left px-5 py-3 font-semibold text-foreground">조직명</th>
+                <th className="text-left px-4 py-3 font-semibold text-foreground">오너</th>
                 <th className="text-left px-4 py-3 font-semibold text-foreground">유형</th>
                 <th className="text-left px-4 py-3 font-semibold text-foreground">상태</th>
-                <th className="text-left px-4 py-3 font-semibold text-foreground">등급</th>
+                <th className="text-left px-4 py-3 font-semibold text-foreground">플랜</th>
                 <th className="text-left px-4 py-3 font-semibold text-foreground">가입일</th>
               </tr>
             </thead>
             <tbody>
-              {companies.map((company, i) => (
-                <tr key={company.id} className={i % 2 === 0 ? '' : 'bg-muted/20'}>
-                  <td className="px-5 py-3.5 font-medium text-foreground">{company.name}</td>
-                  <td className="px-4 py-3.5">
-                    <div>
-                      <p className="text-foreground">{company.admin_name ?? '—'}</p>
-                      <p className="text-muted-foreground text-xs">{company.admin_email ?? '—'}</p>
-                    </div>
-                  </td>
+              {orgs.map((org, i) => (
+                <tr key={org.id} className={i % 2 === 0 ? '' : 'bg-muted/20'}>
+                  <td className="px-5 py-3.5 font-medium text-foreground">{org.name}</td>
+                  <td className="px-4 py-3.5 text-muted-foreground text-xs">{org.owner_email ?? '—'}</td>
                   <td className="px-4 py-3.5 text-muted-foreground">
-                    {company.type === 'corporate' ? '기업' : '개인'}
+                    {org.org_type === 'corporate' ? '기업' : '개인'}
                   </td>
                   <td className="px-4 py-3.5">
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      company.status === 'active'
+                      org.status === 'active'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-amber-100 text-amber-800'
                     }`}>
-                      {company.status === 'active' ? '활성' : '대기'}
+                      {org.status === 'active' ? '활성' : '대기'}
                     </span>
                   </td>
                   <td className="px-4 py-3.5">
-                    <GradeSelect
-                      value={company.grade as Grade}
-                      loading={actionLoading === company.id + '-grade'}
-                      onChange={(g) => setGrade(company.id, g)}
+                    <PlanSelect
+                      value={org.plan_id as PlanId}
+                      loading={actionLoading === org.id + '-plan'}
+                      onChange={(p) => setPlan(org.id, p)}
+                      options={ALL_PLANS}
                     />
                   </td>
                   <td className="px-4 py-3.5 text-muted-foreground text-xs">
-                    {new Date(company.created_at).toLocaleDateString('ko-KR')}
+                    {new Date(org.created_at).toLocaleDateString('ko-KR')}
                   </td>
                 </tr>
               ))}
@@ -200,63 +193,60 @@ export default function SuperAdminPanel() {
 
 // ── 대기 중 카드 ──────────────────────────────────────────────
 function PendingCard({
-  company,
+  org,
   actionLoading,
   onApprove,
   onReject,
 }: {
-  company: CompanyRow
+  org: OrgRow
   actionLoading: string | null
-  onApprove: (id: string, grade: Grade) => void
+  onApprove: (id: string, plan: PlanId) => void
   onReject: (id: string) => void
 }) {
-  const [selectedGrade, setSelectedGrade] = useState<Grade>('silver')
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>('starter')
 
   return (
     <div className="bg-white border border-amber-200 rounded-2xl p-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-bold text-foreground text-lg">{company.name}</h3>
+            <h3 className="font-bold text-foreground text-lg">{org.name}</h3>
             <span className="text-xs bg-amber-100 text-amber-800 rounded-full px-2 py-0.5 font-medium">
               기업 · 승인 대기
             </span>
           </div>
           <p className="text-sm text-muted-foreground">
-            담당자: {company.admin_name ?? '—'} ({company.admin_email ?? '—'})
+            오너: {org.owner_email ?? '—'}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            신청일: {new Date(company.created_at).toLocaleDateString('ko-KR')}
+            신청일: {new Date(org.created_at).toLocaleDateString('ko-KR')}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* 등급 선택 */}
-          <GradeSelect
-            value={selectedGrade}
+          <PlanSelect
+            value={selectedPlan}
             loading={false}
-            onChange={setSelectedGrade}
-            options={['silver', 'gold', 'platinum'] as Grade[]}
+            onChange={setSelectedPlan}
+            options={PAID_PLANS}
           />
 
-          {/* 승인 */}
           <button
-            onClick={() => onApprove(company.id, selectedGrade)}
-            disabled={actionLoading === company.id + '-approve'}
+            onClick={() => onApprove(org.id, selectedPlan)}
+            disabled={actionLoading === org.id + '-approve'}
             className="flex items-center gap-1.5 bg-brand-navy text-white text-sm font-semibold rounded-full px-4 py-2 hover:bg-brand-navy-dark transition-colors disabled:opacity-60"
           >
             <Check className="h-4 w-4" />
-            {actionLoading === company.id + '-approve' ? '처리 중...' : '승인'}
+            {actionLoading === org.id + '-approve' ? '처리 중...' : '승인'}
           </button>
 
-          {/* 거절 */}
           <button
-            onClick={() => onReject(company.id)}
-            disabled={actionLoading === company.id + '-reject'}
+            onClick={() => onReject(org.id)}
+            disabled={actionLoading === org.id + '-reject'}
             className="flex items-center gap-1.5 border border-red-300 text-red-600 text-sm font-medium rounded-full px-4 py-2 hover:bg-red-50 transition-colors disabled:opacity-60"
           >
             <X className="h-4 w-4" />
-            {actionLoading === company.id + '-reject' ? '처리 중...' : '거절'}
+            {actionLoading === org.id + '-reject' ? '처리 중...' : '거절'}
           </button>
         </div>
       </div>
@@ -264,30 +254,28 @@ function PendingCard({
   )
 }
 
-// ── 등급 선택 드롭다운 ─────────────────────────────────────────
-function GradeSelect({
+// ── 플랜 선택 드롭다운 ─────────────────────────────────────────
+function PlanSelect({
   value,
   loading,
   onChange,
-  options = ['free', 'silver', 'gold', 'platinum'] as Grade[],
+  options = ALL_PLANS,
 }: {
-  value: Grade
+  value: PlanId
   loading: boolean
-  onChange: (g: Grade) => void
-  options?: Grade[]
+  onChange: (p: PlanId) => void
+  options?: PlanId[]
 }) {
   return (
     <div className="relative">
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value as Grade)}
+        onChange={(e) => onChange(e.target.value as PlanId)}
         disabled={loading}
         className="appearance-none bg-muted border border-border rounded-full px-3 py-1.5 pr-7 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-brand-orange/30 disabled:opacity-60 cursor-pointer"
       >
-        {options.map((g) => (
-          <option key={g} value={g}>
-            {GRADE_LABELS[g]}
-          </option>
+        {options.map((p) => (
+          <option key={p} value={p}>{PLAN_LABELS[p]}</option>
         ))}
       </select>
       <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />

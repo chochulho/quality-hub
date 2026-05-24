@@ -3,16 +3,15 @@
 import { useState, useRef, useEffect } from "react";
 import { LogOut, User, ChevronDown, Settings } from "lucide-react";
 import LogoutButton from "@/components/auth/LogoutButton";
-import type { Grade } from "@/lib/auth/grades";
 import GradeBadge from "@/components/dashboard/GradeBadge";
 
 interface WorkspaceUserMenuProps {
   name: string;
-  grade: Grade;
+  planId: string;
   role: string;
 }
 
-export default function WorkspaceUserMenu({ name, grade, role }: WorkspaceUserMenuProps) {
+export default function WorkspaceUserMenu({ name, planId, role }: WorkspaceUserMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -43,7 +42,7 @@ export default function WorkspaceUserMenu({ name, grade, role }: WorkspaceUserMe
           <div className="px-3 py-2.5 border-b border-border mb-1">
             <p className="text-sm font-semibold text-foreground truncate">{name}</p>
             <div className="mt-1">
-              <GradeBadge grade={grade} size="sm" />
+              <GradeBadge planId={planId} size="sm" />
             </div>
           </div>
 

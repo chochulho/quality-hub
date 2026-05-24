@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight, AlertCircle, ArrowUpRight } from 'lucide-react'
 import { getSession } from '@/lib/auth/session'
-import { ALL_TOOL_IDS, TOOLS, isToolUnlocked, GRADE_LABELS, PRICING_TIERS } from '@/lib/auth/grades'
+import { ALL_TOOL_IDS, TOOLS, isToolUnlocked, PLAN_LABELS, type ToolId } from '@/lib/auth/grades'
+import { createClient } from '@/lib/supabase/server'
 import ToolAccessCard from '@/components/dashboard/ToolAccessCard'
 import GradeBadge from '@/components/dashboard/GradeBadge'
 import LogoutButton from '@/components/auth/LogoutButton'
@@ -13,14 +14,26 @@ export default async function DashboardPage() {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const isPending = session.companyStatus === 'pending'
-  const unlockedCount = ALL_TOOL_IDS.filter((id) =>
-    isToolUnlocked(session.grade, id)
-  ).length
+  const isPending = session.orgStatus === 'pending'
 
-  const nextTier = PRICING_TIERS.find(
-    (t) => t.toolCount > unlockedCount && t.id !== 'free'
+  // Starter/Team 플랜: org_selected_tools에서 선택 도구 조회
+  let selectedTools: ToolId[] = []
+  if (session.orgId && (session.planId === 'starter' || session.planId === 'team')) {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('org_selected_tools')
+      .select('tool_key')
+      .eq('org_id', session.orgId)
+    selectedTools = (data ?? []).map((r) => r.tool_key as ToolId)
+  }
+
+  const unlockedIds = ALL_TOOL_IDS.filter((id) =>
+    isToolUnlocked(session.planId, id, selectedTools)
   )
+  const unlockedCount = unlockedIds.length
+
+  const planId = session.planId
+  const isTopPlan = planId === 'business' || planId === 'enterprise'
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -30,17 +43,15 @@ export default async function DashboardPage() {
         <div>
           <p className="text-sm text-muted-foreground mb-1">
             안녕하세요, <span className="font-medium text-foreground">{session.name}</span>님
-            {session.companyName && (
-              <span className="ml-1.5 text-muted-foreground">
-                · {session.companyName}
-              </span>
+            {session.orgName && (
+              <span className="ml-1.5 text-muted-foreground">· {session.orgName}</span>
             )}
           </p>
           <h1 className="text-3xl font-extrabold text-brand-navy tracking-tight">
             내 도구 대시보드
           </h1>
           <div className="flex items-center gap-3 mt-2">
-            <GradeBadge grade={session.grade} />
+            <GradeBadge planId={session.planId} />
             <span className="text-sm text-muted-foreground">
               {isPending ? '승인 대기 중' : `${unlockedCount}개 도구 이용 중`}
             </span>
@@ -68,26 +79,24 @@ export default async function DashboardPage() {
           <ToolAccessCard
             key={toolId}
             tool={TOOLS[toolId]}
-            unlocked={!isPending && isToolUnlocked(session.grade, toolId)}
-            currentGrade={session.grade}
+            unlocked={!isPending && isToolUnlocked(session.planId, toolId, selectedTools)}
+            planId={session.planId}
           />
         ))}
       </div>
 
-      {/* 업그레이드 CTA (Platinum이 아닌 경우) */}
-      {session.grade !== 'platinum' && !isPending && nextTier && (
+      {/* 업그레이드 CTA */}
+      {!isTopPlan && !isPending && (
         <div className="mt-12 rounded-3xl bg-brand-navy p-8 md:p-10">
           <div className="max-w-2xl">
             <p className="text-xs font-medium text-white/60 mb-2 uppercase tracking-wide">
               업그레이드
             </p>
             <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-3">
-              {GRADE_LABELS[nextTier.id]} 플랜으로{' '}
-              <span className="text-brand-orange">{nextTier.toolCount}개</span>
-              {' '}도구를 이용하세요
+              더 많은 도구가 필요하신가요?
             </h2>
             <p className="text-white/70 text-sm mb-6">
-              {nextTier.features[nextTier.features.length - 1]}
+              Business 플랜으로 5개 도구를 모두 이용하세요.
             </p>
             <Link
               href="/pricing"

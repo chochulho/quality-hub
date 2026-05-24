@@ -2,17 +2,15 @@
 
 import Link from 'next/link'
 import { ExternalLink, Lock, ArrowRight } from 'lucide-react'
-import { type ToolDef, type Grade, GRADE_LABELS, getRequiredGrade } from '@/lib/auth/grades'
+import { type ToolDef } from '@/lib/auth/grades'
 
 interface ToolAccessCardProps {
   tool: ToolDef
   unlocked: boolean
-  currentGrade: Grade
+  planId?: string   // 잠금 배지에 "Starter 이상" 표시용 (optional)
 }
 
-export default function ToolAccessCard({ tool, unlocked, currentGrade }: ToolAccessCardProps) {
-  const requiredGrade = getRequiredGrade(tool.id)
-
+export default function ToolAccessCard({ tool, unlocked, planId: _planId }: ToolAccessCardProps) {
   if (unlocked) {
     return (
       <div className="bg-white border border-border rounded-3xl overflow-hidden hover:border-brand-navy transition-colors duration-200 group">
@@ -55,7 +53,7 @@ export default function ToolAccessCard({ tool, unlocked, currentGrade }: ToolAcc
         <div className="bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1.5 border border-border shadow-sm">
           <Lock className="h-3 w-3 text-muted-foreground" />
           <span className="text-xs text-muted-foreground font-medium">
-            {GRADE_LABELS[requiredGrade]}
+            Starter+
           </span>
         </div>
       </div>
@@ -83,7 +81,7 @@ export default function ToolAccessCard({ tool, unlocked, currentGrade }: ToolAcc
           href="/pricing"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-navy hover:text-brand-orange transition-colors"
         >
-          {GRADE_LABELS[requiredGrade]} 구독으로 이용
+          요금제 업그레이드
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>

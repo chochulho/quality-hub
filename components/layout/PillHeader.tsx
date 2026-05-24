@@ -11,12 +11,12 @@ import MobileNav from "./MobileNav";
 import LogoutButton from "@/components/auth/LogoutButton";
 import GradeBadge from "@/components/dashboard/GradeBadge";
 import { createClient } from "@/lib/supabase/client";
-import { SUPERADMIN_EMAIL, ALL_TOOL_IDS, TOOLS, type Grade } from "@/lib/auth/grades";
+import { SUPERADMIN_EMAIL, ALL_TOOL_IDS, TOOLS } from "@/lib/auth/grades";
 
 type ClientSession = {
   name: string;
-  grade: Grade;
-  role: "superadmin" | "company_admin" | "member";
+  planId: string;
+  role: "superadmin" | "owner" | "admin" | "member";
 } | null;
 
 const TOOL_DOT: Record<string, string> = {
@@ -102,18 +102,18 @@ export default function PillHeader() {
       if (!user?.email) { setSession(null); return; }
 
       if (user.email === SUPERADMIN_EMAIL) {
-        setSession({ name: "관리자", grade: "platinum", role: "superadmin" });
+        setSession({ name: "관리자", planId: "enterprise", role: "superadmin" });
         return;
       }
 
-      const { data } = await supabase.rpc("qh_get_my_profile");
+      const { data } = await supabase.rpc("get_my_membership");
       if (!mounted) return;
-      const profile = data?.[0];
-      if (profile) {
+      const m = data?.[0];
+      if (m) {
         setSession({
-          name:  profile.prof_name,
-          grade: (profile.company_grade as Grade) ?? "free",
-          role:  profile.role ?? "member",
+          name:   user.email?.split("@")[0] ?? "사용자",
+          planId: m.plan_id ?? "free",
+          role:   m.member_role ?? "member",
         });
       } else {
         setSession(null);
@@ -359,7 +359,7 @@ export default function PillHeader() {
             <div className="flex items-center gap-2">
               {session ? (
                 <div className="hidden md:flex items-center gap-2">
-                  <GradeBadge grade={session.grade} size="sm" />
+                  <GradeBadge planId={session.planId} size="sm" />
                   {session.role === "superadmin" && (
                     <Link
                       href="/admin"

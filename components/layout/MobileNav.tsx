@@ -8,7 +8,7 @@ import {
 import { useState, useEffect } from "react";
 import LogoutButton from "@/components/auth/LogoutButton";
 import GradeBadge from "@/components/dashboard/GradeBadge";
-import { ALL_TOOL_IDS, TOOLS, type Grade } from "@/lib/auth/grades";
+import { ALL_TOOL_IDS, TOOLS } from "@/lib/auth/grades";
 
 const TOOL_DOT: Record<string, string> = {
   "auditsay":           "bg-brand-navy",
@@ -38,9 +38,9 @@ const SUPPORT_LINKS = [
 ];
 
 interface UserSession {
-  name:  string;
-  grade: Grade;
-  role:  "superadmin" | "company_admin" | "member";
+  name:   string;
+  planId: string;
+  role:   "superadmin" | "owner" | "admin" | "member";
 }
 
 interface MobileNavProps {
@@ -96,7 +96,7 @@ export default function MobileNav({ open, onClose, userSession }: MobileNavProps
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-foreground">{userSession.name}</p>
-                <GradeBadge grade={userSession.grade} size="sm" />
+                <GradeBadge planId={userSession.planId} size="sm" />
               </div>
               <LogoutButton showIcon={false} className="text-xs" />
             </div>

@@ -4,20 +4,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle, Building2, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { PRICING_TIERS, type Grade } from '@/lib/auth/grades'
 
 type MemberType = 'individual' | 'corporate'
-
-const PAID_TIERS = PRICING_TIERS.filter((t) => t.id !== 'free')
 
 export default function RegisterForm() {
   const router = useRouter()
 
   const [memberType, setMemberType] = useState<MemberType>('individual')
-  const [selectedGrade, setSelectedGrade] = useState<Grade>('silver')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [companyName, setCompanyName] = useState('')
+  const [orgName, setOrgName] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
@@ -53,17 +49,14 @@ export default function RegisterForm() {
       return
     }
 
-    // 2. qh_register_user RPC로 company + profile 원자적 생성
-    const finalCompanyName =
-      memberType === 'corporate' ? companyName : (name + '의 계정')
+    // 2. register_org RPC: org + primary site + owner member 원자 생성
+    const finalOrgName =
+      memberType === 'corporate' ? orgName : `${name}의 계정`
 
-    const { error: rpcError } = await supabase.rpc('qh_register_user', {
-      p_user_id:      authData.user.id,
-      p_name:         name,
-      p_company_name: finalCompanyName,
-      p_type:         memberType,
-      p_grade:        selectedGrade,
-      p_department:   '',
+    const { error: rpcError } = await supabase.rpc('register_org', {
+      p_user_id:  authData.user.id,
+      p_org_name: finalOrgName,
+      p_org_type: memberType,
     })
 
     setLoading(false)
@@ -116,7 +109,7 @@ export default function RegisterForm() {
     <div className="bg-white border border-border rounded-3xl p-8 shadow-sm">
       <form onSubmit={handleSubmit} className="space-y-5">
 
-        {/* 회원 유형 선택 */}
+        {/* 회원 유형 */}
         <div>
           <p className="text-sm font-medium text-foreground mb-2">회원 유형</p>
           <div className="grid grid-cols-2 gap-3">
@@ -174,8 +167,8 @@ export default function RegisterForm() {
             <input
               type="text"
               required
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
+              value={orgName}
+              onChange={(e) => setOrgName(e.target.value)}
               placeholder="(주)품질기업"
               className="w-full px-4 py-3 rounded-xl border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange transition-colors text-sm"
             />
@@ -220,60 +213,9 @@ export default function RegisterForm() {
           </div>
         </div>
 
-        {/* 등급 선택 */}
-        <div>
-          <p className="text-sm font-medium text-foreground mb-2">
-            구독 등급{' '}
-            <span className="text-xs text-muted-foreground font-normal">
-              — 나중에 변경 가능
-            </span>
-          </p>
-          <div className="space-y-2">
-            {PAID_TIERS.map((tier) => {
-              const isSelected = selectedGrade === tier.id
-              return (
-                <button
-                  key={tier.id}
-                  type="button"
-                  onClick={() => setSelectedGrade(tier.id as Grade)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm transition-all ${
-                    isSelected
-                      ? 'border-brand-orange bg-brand-orange/5'
-                      : 'border-border hover:border-brand-navy/30'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        isSelected ? 'border-brand-orange' : 'border-border'
-                      }`}
-                    >
-                      {isSelected && (
-                        <div className="w-2 h-2 rounded-full bg-brand-orange" />
-                      )}
-                    </div>
-                    <span className={`font-semibold ${isSelected ? 'text-brand-orange' : 'text-foreground'}`}>
-                      {tier.name}
-                    </span>
-                    <span className="text-muted-foreground text-xs">
-                      {tier.label} · 도구 {tier.toolCount}개
-                    </span>
-                    {tier.highlight && (
-                      <span className="text-[10px] font-bold bg-brand-navy text-white rounded-full px-2 py-0.5">
-                        추천
-                      </span>
-                    )}
-                  </div>
-                  <span className={`font-bold ${isSelected ? 'text-brand-orange' : 'text-foreground'}`}>
-                    ₩{tier.monthlyKRW?.toLocaleString()}/월
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            * 현재는 등급 선택만 됩니다. 결제 연동 후 자동 활성화 예정.
-          </p>
+        {/* 플랜 안내 (가입 후 선택) */}
+        <div className="rounded-xl bg-muted/60 border border-border px-4 py-3 text-xs text-muted-foreground">
+          무료 플랜으로 시작합니다. 가입 후 대시보드에서 요금제를 업그레이드할 수 있습니다.
         </div>
 
         {/* 에러 */}

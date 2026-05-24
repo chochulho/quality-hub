@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { GRADE_TOOLS, TOOLS, SUPERADMIN_EMAIL, type ToolId } from '@/lib/auth/grades'
+import { TOOLS, SUPERADMIN_EMAIL, type ToolId } from '@/lib/auth/grades'
 
 /**
  * SSO 지원 도구 → 로그인 후 이동할 URL
- * Supabase 공유 프로젝트 도구: magic link 방식
- * 미지원 도구: tool.href 로 직접 리다이렉트
+ * 같은 Supabase 프로젝트를 공유하는 도구: magic link 방식
  */
 const SSO_REDIRECT: Partial<Record<ToolId, string>> = {
   'auditsay': 'https://auditsay.com',
-  // 'gauge-manager': 'https://gaugemanager.com/dashboard', // 추후 별도 Supabase 연동
 }
 
 export async function GET(
@@ -35,22 +33,26 @@ export async function GET(
     return NextResponse.redirect(loginUrl)
   }
 
-  // 3. 등급 확인 (슈퍼관리자는 항상 허용)
+  // 3. 슈퍼관리자는 항상 허용
   const isSuperadmin = user.email === SUPERADMIN_EMAIL
-
   if (!isSuperadmin) {
-    const { data: profileData } = await supabase.rpc('qh_get_my_profile')
-    const profile = profileData?.[0]
-    const grade = (profile?.company_grade ?? 'free') as keyof typeof GRADE_TOOLS
-    const allowedTools = GRADE_TOOLS[grade] ?? []
+    // 4. 멤버십 + 플랜 확인
+    const { data: membership } = await supabase.rpc('get_my_membership')
+    const m = membership?.[0]
 
-    if (!allowedTools.includes(toolId)) {
-      // 접근 권한 없음 → 요금제 페이지로
+    if (!m || m.org_status !== 'active') {
+      return NextResponse.redirect(new URL('/pricing', request.url))
+    }
+
+    const planId: string = m.plan_id ?? 'free'
+    const hasAccess = await checkToolAccess(supabase, m.org_id, planId, toolId)
+
+    if (!hasAccess) {
       return NextResponse.redirect(new URL('/pricing', request.url))
     }
   }
 
-  // 4. SSO 매직 링크 생성 (같은 Supabase 프로젝트 도구)
+  // 5. SSO 매직 링크 생성
   const ssoRedirectUrl = SSO_REDIRECT[toolId]
 
   if (ssoRedirectUrl) {
@@ -59,14 +61,11 @@ export async function GET(
       const { data, error } = await adminClient.auth.admin.generateLink({
         type: 'magiclink',
         email: user.email,
-        options: {
-          redirectTo: ssoRedirectUrl,
-        },
+        options: { redirectTo: ssoRedirectUrl },
       })
 
       if (error || !data?.properties?.action_link) {
         console.error('[SSO] magic link 생성 실패:', error?.message)
-        // 폴백: 직접 링크
         return NextResponse.redirect(TOOLS[toolId].href)
       }
 
@@ -77,6 +76,28 @@ export async function GET(
     }
   }
 
-  // 5. SSO 미지원 도구 → 직접 이동
+  // 6. SSO 미지원 도구 → 직접 이동
   return NextResponse.redirect(TOOLS[toolId].href)
+}
+
+/** 플랜 + 선택 도구 기반 접근 권한 확인 */
+async function checkToolAccess(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  orgId: string,
+  planId: string,
+  toolId: ToolId
+): Promise<boolean> {
+  if (planId === 'business' || planId === 'enterprise') return true
+  if (planId === 'free') return false
+
+  // starter / team: org_selected_tools 확인
+  const { data } = await supabase
+    .from('org_selected_tools')
+    .select('tool_key')
+    .eq('org_id', orgId)
+    .eq('tool_key', toolId)
+    .maybeSingle()
+
+  return !!data
 }

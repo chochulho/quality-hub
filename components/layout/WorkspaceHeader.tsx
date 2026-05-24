@@ -8,41 +8,33 @@ import WorkspaceUserMenu from "./WorkspaceUserMenu";
 
 /**
  * WorkspaceHeader — 로그인한 기업 회원 전용 헤더 (§6)
- *
- * 규칙:
- * - 마케팅 헤더와 완전 분리 (PillHeader와 공유하지 않음).
- * - 메시 그라디언트·오렌지 CTA 자제 — navy 기반 차분한 톤.
- * - 블로그·요금제·Q&A 링크 노출 금지.
- * - 역할 기반 메뉴: admin+ 인원/사업장, owner만 결제.
+ * v2: session.grade → session.planId, role 체계 변경
  */
 export default async function WorkspaceHeader() {
   const session = await getSession();
-  if (!session) return null; // 미로그인은 마케팅 레이아웃이 처리
+  if (!session) return null;
 
   const isSuperAdmin = session.role === "superadmin";
-  const isAdmin = session.role === "company_admin" || isSuperAdmin;
-  const isOwner = session.role === "company_admin" || isSuperAdmin; // v0.1: company_admin = owner
+  const isAdmin = session.role === "owner" || session.role === "admin" || isSuperAdmin;
+  const isOwner = session.role === "owner" || isSuperAdmin;
 
   return (
     <header className="sticky top-0 z-50 w-full bg-brand-navy border-b border-white/10 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
-        {/* 로고 + 회사명 */}
+        {/* 로고 + 조직명 */}
         <div className="flex items-center gap-3 shrink-0">
           <Link href="/dashboard" className="flex items-center gap-2 text-white">
             <BookOpen className="h-5 w-5 text-brand-orange" />
             <span className="font-bold text-sm hidden sm:block">
-              {session.companyName ?? "Quality Hub"}
+              {session.orgName ?? "Quality Hub"}
             </span>
           </Link>
         </div>
 
         {/* 네비게이션 */}
         <nav className="hidden md:flex items-center gap-1 flex-1">
-          {/* 대시보드 */}
           <NavItem href="/dashboard" Icon={LayoutDashboard} label="대시보드" />
-
-          {/* 참고 자료 (공개 URL로 연결 — /reference/* 준비 후 교체) */}
           <NavItem href="/calculators" Icon={Calculator} label="계산 도구" />
           <NavItem href="/learn" Icon={BookMarked} label="위키" />
 
@@ -69,7 +61,7 @@ export default async function WorkspaceHeader() {
         <div className="flex items-center gap-2 shrink-0">
           <WorkspaceUserMenu
             name={session.name}
-            grade={session.grade}
+            planId={session.planId}
             role={session.role ?? "member"}
           />
         </div>

@@ -1,17 +1,27 @@
 import Link from 'next/link'
 import { Check, ArrowRight } from 'lucide-react'
-import type { PricingTier } from '@/lib/auth/grades'
-import { ALL_TOOL_IDS, TOOLS, GRADE_TOOLS } from '@/lib/auth/grades'
+import { ALL_TOOL_IDS, TOOLS, type ToolId } from '@/lib/auth/grades'
+
+export interface PlanTier {
+  id: string           // 'free' | 'starter' | 'team' | 'business' | 'enterprise'
+  name: string
+  label: string        // 타겟 고객 설명
+  monthlyKRW: number | null
+  annualKRW: number | null
+  toolCount: number    // 포함 도구 수 (0 = 없음, -1 = 선택, 5 = 전체)
+  includedTools: ToolId[]  // 실제 포함 도구 ID
+  highlight: boolean
+  features: string[]
+  ctaLabel: string
+}
 
 interface PricingCardProps {
-  tier: PricingTier
+  tier: PlanTier
   annual: boolean
 }
 
 export default function PricingCard({ tier, annual }: PricingCardProps) {
   const price = annual ? tier.annualKRW : tier.monthlyKRW
-  const unlockedIds = GRADE_TOOLS[tier.id]
-
   const isHighlight = tier.highlight
 
   return (
@@ -31,7 +41,7 @@ export default function PricingCard({ tier, annual }: PricingCardProps) {
       )}
 
       <div className="p-7 flex-1">
-        {/* 등급명 + 라벨 */}
+        {/* 플랜명 + 라벨 */}
         <div className="mb-5">
           <p className={`text-sm font-semibold mb-1 ${isHighlight ? 'text-white/70' : 'text-brand-orange'}`}>
             {tier.label}
@@ -43,36 +53,38 @@ export default function PricingCard({ tier, annual }: PricingCardProps) {
 
         {/* 가격 */}
         <div className="mb-6">
-          {price === null ? (
+          {price === null && tier.monthlyKRW === null ? (
             <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
               무료
             </div>
           ) : (
             <div>
               <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
-                ₩{price.toLocaleString()}
+                ₩{(price ?? 0).toLocaleString()}
                 <span className={`text-base font-normal ml-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
                   /월
                 </span>
               </div>
               {annual && tier.monthlyKRW && (
                 <p className={`text-sm mt-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
-                  연간 결제 시 (월 ₩{tier.monthlyKRW?.toLocaleString()} 대비 약 10% 절약)
+                  연간 결제 시 (월 ₩{tier.monthlyKRW.toLocaleString()} 대비 절약)
                 </p>
               )}
             </div>
           )}
         </div>
 
-        {/* 도구 접근 현황 — 컬러 가로 칩 */}
+        {/* 도구 현황 */}
         {tier.id !== 'free' && (
           <div className={`mb-5 rounded-xl p-3 ${isHighlight ? 'bg-white/10' : 'bg-muted'}`}>
             <p className={`text-xs font-semibold mb-2 ${isHighlight ? 'text-white/70' : 'text-muted-foreground'}`}>
-              포함 도구 ({unlockedIds.length}/5)
+              {tier.toolCount === -1
+                ? `도구 선택 가능`
+                : `포함 도구 (${tier.includedTools.length}/5)`}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {ALL_TOOL_IDS.map((id) => {
-                const included = unlockedIds.includes(id)
+                const included = tier.includedTools.includes(id)
                 const tool = TOOLS[id]
                 return (
                   <span
@@ -97,10 +109,8 @@ export default function PricingCard({ tier, annual }: PricingCardProps) {
         <ul className="space-y-2.5">
           {tier.features.map((f) => (
             <li key={f} className="flex items-start gap-2.5 text-sm">
-              <Check className={`h-4 w-4 shrink-0 mt-0.5 ${isHighlight ? 'text-brand-orange' : 'text-brand-orange'}`} />
-              <span className={isHighlight ? 'text-white/80' : 'text-foreground'}>
-                {f}
-              </span>
+              <Check className="h-4 w-4 shrink-0 mt-0.5 text-brand-orange" />
+              <span className={isHighlight ? 'text-white/80' : 'text-foreground'}>{f}</span>
             </li>
           ))}
         </ul>
@@ -109,7 +119,7 @@ export default function PricingCard({ tier, annual }: PricingCardProps) {
       {/* CTA */}
       <div className="px-7 pb-7">
         <Link
-          href={tier.id === 'free' ? '/learn' : `/register?grade=${tier.id}`}
+          href={tier.id === 'free' ? '/learn' : `/register`}
           className={`flex items-center justify-center gap-2 w-full rounded-full px-6 py-3.5 font-semibold text-sm transition-all hover:-translate-y-0.5 duration-200 ${
             isHighlight
               ? 'bg-brand-orange text-white hover:bg-brand-orange-hover'
