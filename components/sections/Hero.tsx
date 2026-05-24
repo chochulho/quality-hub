@@ -23,20 +23,20 @@ export default function Hero() {
               중소기업 품질팀을 위한 완성형 솔루션
             </p>
             <h1 className="text-4xl md:text-5xl font-extrabold text-brand-navy leading-tight mb-6">
-              QMS, 직접 만들지
+              <span className="text-brand-orange">6개월</span> QMS 구축을
               <br />
-              <span className="text-brand-orange">않아도 됩니다.</span>
+              <span className="text-brand-orange">1주일</span>로.
             </h1>
             <p className="text-lg text-muted-foreground mb-4 max-w-lg" style={{ wordBreak: "keep-all" }}>
-              심사·APQP·게이지·SPC·교육 —{" "}
+              심사·APQP·게이지·부적합·변경관리 —{" "}
               <strong className="text-foreground">
-                <span className="text-brand-orange">30년</span> 경험이 담긴{" "}
                 <span className="text-brand-orange">5가지</span> 도구
               </strong>
               가 이미 준비되어 있습니다.
             </p>
             <p className="text-base text-muted-foreground mb-8 max-w-lg" style={{ wordBreak: "keep-all" }}>
-              기업회원 하나로 전체 품질시스템을 가동하세요.
+              기업회원 하나로 전체 품질시스템을 가동하세요.{" "}
+              <span className="text-brand-orange font-medium">+ SPC·QC7·FMEA 무료 계산 도구 포함</span>
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -54,9 +54,9 @@ export default function Hero() {
               </Link>
             </div>
 
-            {/* Sister site tool chips — grades.ts에서 데이터 자동 동기화 */}
+            {/* SaaS tool chips — grades.ts에서 데이터 자동 동기화, 바디 카피와 1:1 매핑 */}
             <div className="mt-10">
-              <span className="text-xs text-muted-foreground block mb-2">포함 도구</span>
+              <span className="text-xs text-muted-foreground block mb-2">유료 SaaS 도구</span>
               <div className="flex flex-wrap gap-1.5">
                 {ALL_TOOL_IDS.map((id) => {
                   const tool = TOOLS[id];

@@ -27,7 +27,7 @@ export default function CtaSection() {
                 <span className="text-[#FFB347]">전체 품질시스템</span>을 가동하세요.
               </h2>
               <p className="text-sm text-white/70 leading-relaxed" style={{ wordBreak: "keep-all" }}>
-                심사·APQP·게이지·SPC·부적합·변경관리까지.<br />
+                심사·APQP·게이지·부적합·변경관리까지.<br />
                 5가지 도구를 기업회원 하나로 운영합니다.
               </p>
             </div>
@@ -70,6 +70,13 @@ export default function CtaSection() {
           </div>
 
         </div>
+
+        {/* 비자동차 회사 메시지 */}
+        <p className="mt-8 text-center text-sm text-muted-foreground" style={{ wordBreak: 'keep-all' }}>
+          <span className="font-semibold text-foreground">자동차가 아닌 회사도</span>{' '}
+          AuditSay·Gauge Manager·APQP Manager를 단독으로 사용할 수 있습니다.
+        </p>
+
       </div>
     </section>
   );
