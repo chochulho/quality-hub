@@ -3,13 +3,13 @@ import { Check, ArrowRight } from 'lucide-react'
 import { ALL_TOOL_IDS, TOOLS, type ToolId } from '@/lib/auth/grades'
 
 export interface PlanTier {
-  id: string           // 'free' | 'starter' | 'team' | 'business' | 'enterprise'
+  id: string
   name: string
-  label: string        // 타겟 고객 설명
+  label: string
   monthlyKRW: number | null
   annualKRW: number | null
-  toolCount: number    // 포함 도구 수 (0 = 없음, -1 = 선택, 5 = 전체)
-  includedTools: ToolId[]  // 실제 포함 도구 ID
+  toolCount: number
+  includedTools: ToolId[]
   highlight: boolean
   features: string[]
   ctaLabel: string
@@ -17,12 +17,11 @@ export interface PlanTier {
 
 interface PricingCardProps {
   tier: PlanTier
-  annual: boolean
 }
 
-export default function PricingCard({ tier, annual }: PricingCardProps) {
-  const price = annual ? tier.annualKRW : tier.monthlyKRW
+export default function PricingCard({ tier }: PricingCardProps) {
   const isHighlight = tier.highlight
+  const isFree = tier.id === 'free'
 
   return (
     <div
@@ -41,7 +40,7 @@ export default function PricingCard({ tier, annual }: PricingCardProps) {
       )}
 
       <div className="p-7 flex-1">
-        {/* 플랜명 + 라벨 */}
+        {/* 플랜명 */}
         <div className="mb-5">
           <p className={`text-sm font-semibold mb-1 ${isHighlight ? 'text-white/70' : 'text-brand-orange'}`}>
             {tier.label}
@@ -53,34 +52,44 @@ export default function PricingCard({ tier, annual }: PricingCardProps) {
 
         {/* 가격 */}
         <div className="mb-6">
-          {price === null && tier.monthlyKRW === null ? (
+          {isFree ? (
             <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
               무료
             </div>
           ) : (
             <div>
-              <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
-                ₩{(price ?? 0).toLocaleString()}
-                <span className={`text-base font-normal ml-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
-                  /월
-                </span>
+              {/* 월간 가격 */}
+              <div data-monthly="">
+                <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
+                  ₩{(tier.monthlyKRW ?? 0).toLocaleString()}
+                  <span className={`text-base font-normal ml-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
+                    /월
+                  </span>
+                </div>
               </div>
-              {annual && tier.monthlyKRW && (
-                <p className={`text-sm mt-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
-                  연간 결제 시 (월 ₩{tier.monthlyKRW.toLocaleString()} 대비 절약)
-                </p>
-              )}
+              {/* 연간 가격 (초기 hidden) */}
+              <div data-annual="" style={{ display: 'none' }}>
+                <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
+                  ₩{(tier.annualKRW ?? 0).toLocaleString()}
+                  <span className={`text-base font-normal ml-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
+                    /월
+                  </span>
+                </div>
+                {tier.monthlyKRW && (
+                  <p className={`text-xs mt-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
+                    연간 결제 · 월 ₩{tier.monthlyKRW.toLocaleString()} 대비 절약
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>
 
-        {/* 도구 현황 */}
-        {tier.id !== 'free' && (
+        {/* 포함 도구 현황 */}
+        {!isFree && (
           <div className={`mb-5 rounded-xl p-3 ${isHighlight ? 'bg-white/10' : 'bg-muted'}`}>
             <p className={`text-xs font-semibold mb-2 ${isHighlight ? 'text-white/70' : 'text-muted-foreground'}`}>
-              {tier.toolCount === -1
-                ? `도구 선택 가능`
-                : `포함 도구 (${tier.includedTools.length}/5)`}
+              {tier.toolCount === 1 ? '대표 도구 예시' : `포함 도구 (${tier.includedTools.length}/5)`}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {ALL_TOOL_IDS.map((id) => {
@@ -119,11 +128,11 @@ export default function PricingCard({ tier, annual }: PricingCardProps) {
       {/* CTA */}
       <div className="px-7 pb-7">
         <Link
-          href={tier.id === 'free' ? '/learn' : `/register`}
+          href={isFree ? '/learn' : '/register'}
           className={`flex items-center justify-center gap-2 w-full rounded-full px-6 py-3.5 font-semibold text-sm transition-all hover:-translate-y-0.5 duration-200 ${
             isHighlight
               ? 'bg-brand-orange text-white hover:bg-brand-orange-hover'
-              : tier.id === 'free'
+              : isFree
               ? 'bg-muted text-foreground hover:bg-border'
               : 'border-2 border-brand-navy text-brand-navy hover:bg-brand-navy hover:text-white'
           }`}
