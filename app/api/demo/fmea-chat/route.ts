@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const SCENARIOS: Record<string, { title: string; systemPrompt: string }> = {
   brake_pedal: {
@@ -91,7 +91,8 @@ export async function POST(req: NextRequest) {
       return new Response(JSON.stringify({ error: '잘못된 시나리오' }), { status: 400 })
     }
 
-    const stream = await client.messages.stream({
+    // 비스트리밍 호출 — try-catch 안에서 완전히 처리
+    const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: scenarioDef.systemPrompt,
@@ -101,23 +102,11 @@ export async function POST(req: NextRequest) {
       })),
     })
 
-    // SSE 스트림 반환
-    const encoder = new TextEncoder()
-    const readable = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of stream) {
-          if (
-            chunk.type === 'content_block_delta' &&
-            chunk.delta.type === 'text_delta'
-          ) {
-            controller.enqueue(encoder.encode(chunk.delta.text))
-          }
-        }
-        controller.close()
-      },
-    })
+    const text =
+      message.content[0]?.type === 'text' ? message.content[0].text : ''
 
-    return new Response(readable, {
+    // 텍스트를 한 번에 반환 (클라이언트 스트림 리더와 호환됨)
+    return new Response(text, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
         'Cache-Control': 'no-cache',
@@ -126,6 +115,9 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('FMEA demo chat error:', msg)
-    return new Response(JSON.stringify({ error: 'AI 응답 실패', detail: msg }), { status: 500 })
+    return new Response(JSON.stringify({ error: 'AI 응답 실패', detail: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 }
