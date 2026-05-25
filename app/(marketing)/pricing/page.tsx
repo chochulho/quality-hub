@@ -25,8 +25,8 @@ async function getPublicPlans(): Promise<PlanTier[]> {
         id: row.id,
         name: row.name,
         label: getPlanLabel(row.id),
-        monthlyKRW: row.beta_price_monthly ?? row.price_krw_monthly,
-        annualKRW:  row.beta_price_yearly  ?? row.price_krw_yearly,
+        monthlyKRW: row.price_krw_monthly,
+        annualKRW:  row.price_krw_yearly,
         toolCount:  row.selectable_tool_count > 0 ? row.selectable_tool_count : includedTools.length,
         includedTools,
         highlight: row.id === 'team',
@@ -47,7 +47,7 @@ function getIncludedTools(planId: string, entitlements: Record<string, unknown>)
   }
   // starter/team: selectable — 대표 도구 표시
   if (planId === 'starter')  return ['auditsay']
-  if (planId === 'team')     return ['auditsay', 'apqp-manager', 'nc-manager']
+  if (planId === 'team')     return ['auditsay', 'nc-manager', '4m-change-manager']
   return []
 }
 
@@ -72,7 +72,7 @@ function getPlanFeatures(
     free: [
       '품질 학습 위키 전체 무료',
       'SPC · QC7 계산 도구',
-      'FMEA 체험 데모 (준비 중)',
+      'FMEA 체험 데모',
       '회원 가입 없이 이용 가능',
     ],
     starter: [
@@ -109,26 +109,26 @@ const STATIC_FALLBACK: PlanTier[] = [
     id: 'free', name: '무료', label: '학습 + 계산 도구',
     monthlyKRW: null, annualKRW: null, toolCount: 0, includedTools: [],
     highlight: false,
-    features: ['품질 학습 위키 전체 무료', 'SPC · QC7 계산 도구', 'FMEA 체험 데모 (준비 중)', '회원 가입 없이 이용 가능'],
+    features: ['품질 학습 위키 전체 무료', 'SPC · QC7 계산 도구', 'FMEA 체험 데모', '회원 가입 없이 이용 가능'],
     ctaLabel: '무료로 시작',
   },
   {
     id: 'starter', name: 'Starter', label: '도구 1개 선택',
-    monthlyKRW: 24500, annualKRW: 22050, toolCount: 1, includedTools: ['auditsay'],
+    monthlyKRW: 24500, annualKRW: 245000, toolCount: 1, includedTools: ['auditsay'],
     highlight: false,
     features: ['SaaS 도구 1개 선택', 'SPC · QC7 계산 도구', '팀원 최대 10명', '이메일 지원'],
     ctaLabel: 'Starter 시작하기',
   },
   {
     id: 'team', name: 'Team', label: '도구 3개 선택',
-    monthlyKRW: 74500, annualKRW: 67050, toolCount: 3, includedTools: ['auditsay', 'apqp-manager', 'nc-manager'],
+    monthlyKRW: 74500, annualKRW: 745000, toolCount: 3, includedTools: ['auditsay', 'nc-manager', '4m-change-manager'],
     highlight: true,
     features: ['SaaS 도구 3개 선택', 'SPC · QC7 계산 도구', '팀원 최대 30명 · 사업장 2개', '이메일·채팅 지원'],
     ctaLabel: 'Team 시작하기',
   },
   {
     id: 'business', name: 'Business', label: '5개 도구 전체',
-    monthlyKRW: 195000, annualKRW: 175500, toolCount: 5,
+    monthlyKRW: 195000, annualKRW: 1950000, toolCount: 5,
     includedTools: ['auditsay', 'nc-manager', 'apqp-manager', 'gauge-manager', '4m-change-manager'],
     highlight: false,
     features: ['5개 SaaS 도구 전체 포함', '팀원 최대 80명 · 사업장 3개', 'SSO 자동 로그인 (애드온)', '전담 지원'],
@@ -137,16 +137,46 @@ const STATIC_FALLBACK: PlanTier[] = [
 ]
 
 // ── 기능 비교표 ───────────────────────────────────────────────
-const FEATURE_ROWS = [
-  { label: '품질 학습 위키',            plans: ['free', 'starter', 'team', 'business'] },
-  { label: 'SPC · QC7 계산 도구',       plans: ['free', 'starter', 'team', 'business'] },
-  { label: 'SaaS 도구 선택',            plans: ['starter', 'team'] },
-  { label: 'SaaS 도구 전체 (5개)',       plans: ['business'] },
-  { label: '팀원 관리',                 plans: ['starter', 'team', 'business'] },
-  { label: '사업장 복수',               plans: ['team', 'business'] },
-  { label: 'SSO 자동 로그인',            plans: ['business'] },
-  { label: '이메일 지원',               plans: ['starter', 'team', 'business'] },
-  { label: '채팅 지원',                 plans: ['team', 'business'] },
+type PlanId = 'free' | 'starter' | 'team' | 'business'
+type CellValue = true | false | string  // true=✓, false=—, string=커스텀 텍스트
+
+const FEATURE_ROWS: Array<{ label: string; cells: Record<PlanId, CellValue> }> = [
+  {
+    label: '품질 학습 위키',
+    cells: { free: true, starter: true, team: true, business: true },
+  },
+  {
+    label: 'SPC · QC7 계산 도구',
+    cells: { free: true, starter: true, team: true, business: true },
+  },
+  {
+    label: 'FMEA 체험 데모',
+    cells: { free: true, starter: true, team: true, business: true },
+  },
+  {
+    label: 'SaaS 도구 선택',
+    cells: { free: false, starter: '1개', team: '3개', business: '전체 5개' },
+  },
+  {
+    label: '팀원 수',
+    cells: { free: '3명', starter: '10명', team: '30명', business: '80명' },
+  },
+  {
+    label: '사업장',
+    cells: { free: '1개', starter: '1개', team: '2개', business: '3개' },
+  },
+  {
+    label: 'SSO 자동 로그인',
+    cells: { free: false, starter: false, team: false, business: '애드온' },
+  },
+  {
+    label: '이메일 지원',
+    cells: { free: false, starter: true, team: true, business: true },
+  },
+  {
+    label: '채팅 지원',
+    cells: { free: false, starter: false, team: true, business: true },
+  },
 ]
 
 const FAQ = [
@@ -157,10 +187,6 @@ const FAQ = [
   {
     q: 'Starter · Team 플랜에서 어떤 도구를 선택할 수 있나요?',
     a: 'AuditSay · NC Manager · APQP Manager · Gauge Manager · 4M Change Manager 5가지 중에서 플랜에 맞는 수만큼 선택할 수 있습니다. 대시보드에서 언제든지 변경 가능합니다.',
-  },
-  {
-    q: '베타 가격은 언제까지인가요?',
-    a: '베타 기간(출시 후 6개월) 동안 정가의 50% 할인된 가격으로 이용하실 수 있습니다. 베타 가입자는 이후에도 12개월간 동일 가격이 유지됩니다.',
   },
   {
     q: 'Enterprise 플랜은 어떻게 신청하나요?',
@@ -192,11 +218,6 @@ export default async function PricingPage() {
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Free부터 Business까지. 팀 규모와 필요에 맞게 시작하고, 언제든지 변경하세요.
         </p>
-        {/* 베타 배너 */}
-        <div className="inline-flex items-center gap-2 mt-6 bg-brand-orange/10 border border-brand-orange/20 rounded-full px-5 py-2 text-sm font-medium text-brand-orange">
-          🎉 베타 출시 기념 — 정가 대비 <strong>50% 할인</strong> 적용 중
-        </div>
-
         {/* 월간/연간 토글 — Client Component */}
         <PricingToggle />
       </div>
@@ -227,15 +248,20 @@ export default async function PricingPage() {
               {FEATURE_ROWS.map((row, i) => (
                 <tr key={i} className={i % 2 === 0 ? 'bg-muted/30' : ''}>
                   <td className="py-3 pr-4 text-foreground">{row.label}</td>
-                  {planIds.map((id) => (
-                    <td key={id} className="py-3 px-3 text-center">
-                      {row.plans.includes(id) ? (
-                        <Check className="h-4 w-4 text-brand-orange mx-auto" />
-                      ) : (
-                        <span className="text-border text-lg">—</span>
-                      )}
-                    </td>
-                  ))}
+                  {planIds.map((id) => {
+                    const cell = row.cells[id as PlanId] ?? false
+                    return (
+                      <td key={id} className="py-3 px-3 text-center">
+                        {cell === true ? (
+                          <Check className="h-4 w-4 text-brand-orange mx-auto" />
+                        ) : cell === false ? (
+                          <span className="text-muted-foreground/40 text-lg leading-none">—</span>
+                        ) : (
+                          <span className="text-sm font-medium text-foreground">{cell}</span>
+                        )}
+                      </td>
+                    )
+                  })}
                 </tr>
               ))}
             </tbody>

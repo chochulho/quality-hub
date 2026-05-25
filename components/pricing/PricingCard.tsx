@@ -72,12 +72,12 @@ export default function PricingCard({ tier }: PricingCardProps) {
                 <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
                   ₩{(tier.annualKRW ?? 0).toLocaleString()}
                   <span className={`text-base font-normal ml-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
-                    /월
+                    /년
                   </span>
                 </div>
-                {tier.monthlyKRW && (
+                {tier.annualKRW && (
                   <p className={`text-xs mt-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
-                    연간 결제 · 월 ₩{tier.monthlyKRW.toLocaleString()} 대비 절약
+                    월 ₩{Math.round(tier.annualKRW / 12).toLocaleString()} 효과 · 2개월 무료
                   </p>
                 )}
               </div>

@@ -7,7 +7,7 @@ const cards = [
   },
   {
     title: "별도 시스템 구축 불필요",
-    description: "기업회원 가입만으로 QMS 문서·교육·심사를 즉시 운영합니다.",
+    description: "기업회원 가입 후 즉시 도구를 사용합니다. 별도 IT 구축 없이.",
   },
   {
     title: "지식 + 운영 도구 통합",

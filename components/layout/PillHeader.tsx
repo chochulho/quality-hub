@@ -27,6 +27,9 @@ const TOOL_DOT: Record<string, string> = {
   "4m-change-manager":  "bg-purple-700",
 };
 
+// SSO가 구성된 도구 — 로그인 시 /api/sso/:id 경유
+const SSO_TOOL_IDS = new Set(["auditsay", "gauge-manager"]);
+
 // 무료 계산 도구 (v2: VSM/Kanban 제거, /calculators/* 경로)
 const CALCULATOR_TOOLS = [
   {
@@ -259,12 +262,15 @@ export default function PillHeader() {
                     <ul className="space-y-0.5">
                       {ALL_TOOL_IDS.map((id) => {
                         const tool = TOOLS[id];
+                        // 로그인 + SSO 지원 도구 → /api/sso/:id 경유 (같은 탭)
+                        const useSso = !!session && SSO_TOOL_IDS.has(id);
+                        const href = useSso ? `/api/sso/${id}` : tool.href;
                         return (
                           <li key={id}>
                             <a
-                              href={tool.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              href={href}
+                              target={useSso ? "_self" : "_blank"}
+                              rel={useSso ? undefined : "noopener noreferrer"}
                               onClick={close}
                               className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors group"
                             >

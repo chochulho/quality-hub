@@ -24,7 +24,7 @@ export default async function WorkspaceHeader() {
 
         {/* 로고 + 조직명 */}
         <div className="flex items-center gap-3 shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-2 text-white">
+          <Link href="/" className="flex items-center gap-2 text-white">
             <BookOpen className="h-5 w-5 text-brand-orange" />
             <span className="font-bold text-sm hidden sm:block">
               {session.orgName ?? "Quality Hub"}

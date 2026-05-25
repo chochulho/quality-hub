@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { SignJWT } from 'jose'
 import { TOOLS, SUPERADMIN_EMAIL, type ToolId } from '@/lib/auth/grades'
 
 // ── SSO 설정 ────────────────────────────────────────────────────
 
 interface SsoTarget {
-  type: 'same_project' | 'own_project'
-  /** Supabase가 매직 링크 처리 후 리다이렉트할 URL */
+  type: 'same_project' | 'jwt_bridge'
+  /** 최종 리다이렉트 URL */
   redirectTo: string
-  /** own_project 전용 */
-  supabaseUrlEnv?: string
-  serviceRoleKeyEnv?: string
-  /** 해당 SaaS에 profiles 레코드 자동 생성 여부 */
+  /** same_project: profiles 레코드 자동 생성 여부 */
   autoProvision?: boolean
+  /** jwt_bridge: 공유 시크릿 환경변수 이름 */
+  secretEnv?: string
 }
 
 const SSO_CONFIG: Partial<Record<ToolId, SsoTarget>> = {
@@ -24,11 +23,14 @@ const SSO_CONFIG: Partial<Record<ToolId, SsoTarget>> = {
     autoProvision: true,                   // profiles + company 자동 생성
   },
   'gauge-manager': {
-    type: 'own_project',
-    redirectTo: 'https://gaugemanager.com',
-    supabaseUrlEnv: 'GAUGE_SUPABASE_URL',
-    serviceRoleKeyEnv: 'GAUGE_SUPABASE_SERVICE_ROLE_KEY',
-    autoProvision: false,
+    type: 'jwt_bridge',
+    redirectTo: 'https://gaugemanager.com/api/auth/sso',
+    secretEnv: 'SSO_GAUGE_SECRET',
+  },
+  'apqp-manager': {
+    type: 'jwt_bridge',
+    redirectTo: 'https://apqpmanager.com/api/auth/sso',
+    secretEnv: 'SSO_FMEA_SECRET',
   },
 }
 
@@ -80,31 +82,29 @@ export async function GET(
   }
 
   try {
-    const adminClient = ssoConfig.type === 'same_project'
-      ? createAdminClient()
-      : (() => {
-          const url = process.env[ssoConfig.supabaseUrlEnv!]
-          const key = process.env[ssoConfig.serviceRoleKeyEnv!]
-          if (!url || !key) throw new Error(`환경변수 미설정: ${ssoConfig.serviceRoleKeyEnv}`)
-          return createSupabaseClient(url, key, {
-            auth: { autoRefreshToken: false, persistSession: false },
-          })
-        })()
+    // ── jwt_bridge (gauge-manager 등 별도 인증 시스템) ─────────────
+    if (ssoConfig.type === 'jwt_bridge') {
+      const sharedSecret = process.env[ssoConfig.secretEnv!]
+      if (!sharedSecret) throw new Error(`환경변수 미설정: ${ssoConfig.secretEnv}`)
 
-    // 4. own_project: 유저가 없으면 생성
-    if (ssoConfig.type === 'own_project') {
-      const { data: list } = await adminClient.auth.admin.listUsers()
-      const found = list?.users?.find(u => u.email === user.email)
-      if (!found) {
-        await adminClient.auth.admin.createUser({
-          email: user.email,
-          email_confirm: true,
-          user_metadata: { sso_from: 'quality-hub' },
-        })
-      }
+      const displayName = user.user_metadata?.full_name
+        ?? user.email!.split('@')[0]
+
+      const token = await new SignJWT({ email: user.email, name: displayName, plan: 'platinum' })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('5m')
+        .sign(new TextEncoder().encode(sharedSecret))
+
+      const dest = new URL(ssoConfig.redirectTo)
+      dest.searchParams.set('token', token)
+      return NextResponse.redirect(dest.toString())
     }
 
-    // 5. auditsay: profiles 레코드 없으면 자동 생성 (register_user RPC)
+    // ── same_project (auditsay — Supabase 매직 링크) ───────────────
+    const adminClient = createAdminClient()
+
+    // 4. auditsay: profiles 레코드 없으면 자동 생성 (register_user RPC)
     if (ssoConfig.autoProvision) {
       const { data: profile } = await adminClient
         .from('profiles')
@@ -114,13 +114,10 @@ export async function GET(
 
       if (!profile) {
         const displayName = user.user_metadata?.full_name
-          ?? user.email.split('@')[0]
+          ?? user.email!.split('@')[0]
 
-        // quality-hub 플랜 → auditsay grade 매핑
-        const auditsayGrade =
-          isSuperadmin ? 'enterprise' :
-          ['business', 'enterprise'].includes(memberPlanId) ? 'enterprise' :
-          'pro'  // starter/team = auditsay pro (이미 결제됨)
+        // QH 구독 통과 = auditsay 최고 등급 (enterprise)
+        const auditsayGrade = 'enterprise'
 
         const { error: rpcErr } = await adminClient.rpc('register_user', {
           p_user_id:      user.id,
@@ -138,10 +135,10 @@ export async function GET(
       }
     }
 
-    // 6. 매직 링크 생성 → 리다이렉트
+    // 5. 매직 링크 생성 → 리다이렉트
     const { data, error } = await adminClient.auth.admin.generateLink({
       type: 'magiclink',
-      email: user.email,
+      email: user.email!,
       options: { redirectTo: ssoConfig.redirectTo },
     })
 
