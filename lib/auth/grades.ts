@@ -71,7 +71,7 @@ export const TOOLS: Record<ToolId, ToolDef> = {
       '5Why · Fishbone · Is/IsNot 원인분석',
       '8D 보고서 PDF 자동 출력',
     ],
-    href: 'https://nc-manager-chi.vercel.app',
+    href: '/api/sso/nc-manager',
     color: 'bg-red-700',
   },
   'apqp-manager': {

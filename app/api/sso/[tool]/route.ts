@@ -22,6 +22,11 @@ const SSO_CONFIG: Partial<Record<ToolId, SsoTarget>> = {
     redirectTo: 'https://auditsay.com',   // Vite SPA — hash token 자동 감지
     autoProvision: true,                   // profiles + company 자동 생성
   },
+  'nc-manager': {
+    type: 'same_project',
+    // Next.js SSR: /ko/sso 클라이언트 페이지가 hash token 처리 (기본 로케일: ko)
+    redirectTo: 'https://nc-manager-chi.vercel.app/ko/sso',
+  },
   'gauge-manager': {
     type: 'jwt_bridge',
     redirectTo: 'https://gaugemanager.com/api/auth/sso',
