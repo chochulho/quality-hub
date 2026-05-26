@@ -116,7 +116,7 @@ export const TOOLS: Record<ToolId, ToolDef> = {
       'EO 번호 연동 · LOT 역추적',
       '초기 유동 1 · 3 · 6개월 모니터링',
     ],
-    href: 'https://change-manager-self.vercel.app',
+    href: '/api/sso/4m-change-manager',
     color: 'bg-purple-700',
   },
 }

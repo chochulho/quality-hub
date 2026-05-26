@@ -37,6 +37,12 @@ const SSO_CONFIG: Partial<Record<ToolId, SsoTarget>> = {
     redirectTo: 'https://apqpmanager.com/api/auth/sso',
     secretEnv: 'SSO_FMEA_SECRET',
   },
+  '4m-change-manager': {
+    type: 'jwt_bridge',
+    // Next.js SSR: /ko/sso 페이지가 JWT token 처리 (기본 로케일: ko)
+    redirectTo: 'https://change-manager-self.vercel.app/ko/sso',
+    secretEnv: 'SSO_4M_SECRET',
+  },
 }
 
 export async function GET(
