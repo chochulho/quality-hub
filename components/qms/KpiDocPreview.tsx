@@ -73,13 +73,20 @@ export default function KpiDocPreview({ content }: { content: string }) {
 
           {/* KPI 테이블 */}
           <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-xs border-collapse">
+            <table className="w-full text-xs border-collapse table-fixed">
+              <colgroup>
+                <col />
+                <col className="w-[62px]" />
+                <col className="w-[168px]" />
+                <col className="w-[52px]" />
+                <col className="w-[64px]" />
+              </colgroup>
               <thead>
                 <tr className="bg-muted/40">
                   <th className="text-left px-3 py-2 border-b border-r border-border font-semibold text-muted-foreground">지표</th>
-                  <th className="text-center px-2 py-2 border-b border-r border-border font-semibold text-muted-foreground w-16">유형</th>
+                  <th className="text-center px-2 py-2 border-b border-r border-border font-semibold text-muted-foreground">유형</th>
                   <th className="text-left px-3 py-2 border-b border-r border-border font-semibold text-muted-foreground">목표</th>
-                  <th className="text-center px-2 py-2 border-b border-r border-border font-semibold text-muted-foreground w-16">주기</th>
+                  <th className="text-center px-2 py-2 border-b border-r border-border font-semibold text-muted-foreground">주기</th>
                   <th className="text-left px-3 py-2 border-b border-border font-semibold text-muted-foreground">담당</th>
                 </tr>
               </thead>
@@ -96,13 +103,13 @@ export default function KpiDocPreview({ content }: { content: string }) {
                         </span>
                       ) : null}
                     </td>
-                    <td className="px-3 py-2 border-b border-r border-border text-brand-orange font-semibold">
+                    <td className="px-3 py-2 border-b border-r border-border text-brand-orange font-semibold" style={{ wordBreak: 'keep-all' }}>
                       {kpi.target}
                     </td>
                     <td className="px-2 py-2 border-b border-r border-border text-center text-muted-foreground">
                       {kpi.frequency}
                     </td>
-                    <td className="px-3 py-2 border-b border-border text-muted-foreground">
+                    <td className="px-3 py-2 border-b border-border text-muted-foreground" style={{ wordBreak: 'keep-all' }}>
                       {kpi.owner}
                     </td>
                   </tr>
