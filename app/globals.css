@@ -239,7 +239,7 @@
   margin-bottom: 0.4rem;
 }
 
-/* QMS 문서 내 코드 블록 (프로세스 맵, ASCII 다이어그램) */
+/* QMS 문서 내 일반 코드 블록 */
 .prose pre.md-code {
   background: var(--muted);
   color: var(--foreground);
@@ -259,6 +259,92 @@
   font-size: inherit;
   color: inherit;
 }
+
+/* ── 수직 플로우 다이어그램 (flow 블록) ─────── */
+.pf {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 1.25rem auto;
+  max-width: 580px;
+}
+.pf-box {
+  background: #fff;
+  border: 1.5px solid var(--brand-navy);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  text-align: center;
+  line-height: 1.7;
+}
+.pf-box strong {
+  display: block;
+  font-weight: 700;
+  color: var(--brand-navy);
+  font-size: 0.875rem;
+  margin-bottom: 0.1rem;
+}
+.pf-box--io {
+  background: color-mix(in srgb, var(--brand-navy) 8%, #fff);
+}
+.pf-sub {
+  display: block;
+  font-size: 0.775rem;
+  color: var(--muted-foreground);
+  margin-top: 0.15rem;
+}
+.pf-arrow {
+  text-align: center;
+  font-size: 1.375rem;
+  color: var(--brand-navy);
+  line-height: 1;
+  padding: 0.15rem 0;
+}
+
+/* ── 3열 플로우 다이어그램 (flow3 블록) ──────── */
+.pf3 {
+  display: grid;
+  grid-template-columns: 1fr 2.2fr 1fr;
+  border: 1.5px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-size: 0.8rem;
+}
+.pf3-col {
+  padding: 0.875rem 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.pf3-col--left,
+.pf3-col--right {
+  background: color-mix(in srgb, var(--brand-navy) 6%, #fff);
+}
+.pf3-col--center {
+  background: #fff;
+  border-left: 1.5px solid var(--border);
+  border-right: 1.5px solid var(--border);
+}
+.pf3-label {
+  font-weight: 700;
+  color: var(--brand-navy);
+  font-size: 0.775rem;
+  text-align: center;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.3rem;
+}
+.pf3-body { display: flex; flex-direction: column; gap: 0.2rem; }
+.pf3-line {
+  color: var(--foreground);
+  line-height: 1.55;
+  padding: 0.2rem 0;
+}
+.pf3-col--center .pf3-line {
+  border-bottom: 1px dashed var(--border);
+  padding: 0.3rem 0;
+}
+.pf3-col--center .pf3-line:last-child { border-bottom: none; }
 
 /* ============================
    Print styles (PDF 내보내기)

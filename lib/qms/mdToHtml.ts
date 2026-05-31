@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────
-// QMS 문서 Markdown → HTML 변환기 (인쇄 전용)
-// 외부 라이브러리 없이 순수 구현
+// QMS 문서 Markdown → HTML 변환기
+// flow / flow3 블록은 CSS 다이어그램으로 렌더링
 // ─────────────────────────────────────────────
 
 function escapeHtml(text: string): string {
@@ -18,28 +18,63 @@ function renderInline(text: string): string {
     .replace(/`(.+?)`/g,       '<code>$1</code>')
 }
 
+// 수직 플로우 다이어그램: --- 구분자로 박스 분리, 첫째/마지막 박스는 io 스타일
+function renderFlow(raw: string): string {
+  const sections = raw.split(/^---\s*$/m).map(s => s.trim()).filter(Boolean)
+  const total = sections.length
+  let html = '<div class="pf">'
+  sections.forEach((section, i) => {
+    const rows = section.split('\n').filter(Boolean)
+    const title = escapeHtml(rows[0] ?? '')
+    const subs = rows.slice(1)
+      .map(r => `<span class="pf-sub">${escapeHtml(r)}</span>`)
+      .join('')
+    const isIO = i === 0 || i === total - 1
+    html += `<div class="pf-box${isIO ? ' pf-box--io' : ''}"><strong>${title}</strong>${subs}</div>`
+    if (i < total - 1) html += '<div class="pf-arrow">▼</div>'
+  })
+  return html + '</div>'
+}
+
+// 3열 플로우 다이어그램: === 구분자, 각 열은 LABEL: 로 제목
+function renderFlow3(raw: string): string {
+  const cols = raw.split(/^===\s*$/m).map(s => s.trim()).filter(Boolean)
+  if (cols.length !== 3) return `<pre class="md-code"><code>${escapeHtml(raw)}</code></pre>`
+  const modifiers = ['left', 'center', 'right']
+  const colHtml = cols.map((col, ci) => {
+    const rows = col.split('\n').filter(Boolean)
+    const m = rows[0]?.match(/^LABEL:\s*(.+)/)
+    const label = m ? escapeHtml(m[1]) : ''
+    const content = rows.slice(m ? 1 : 0)
+      .map(r => `<div class="pf3-line">${escapeHtml(r)}</div>`)
+      .join('')
+    return `<div class="pf3-col pf3-col--${modifiers[ci]}">${
+      label ? `<div class="pf3-label">${label}</div>` : ''
+    }<div class="pf3-body">${content}</div></div>`
+  })
+  return `<div class="pf3">${colHtml.join('')}</div>`
+}
+
 export function mdToHtml(md: string): string {
   const lines = md.split('\n')
   const out: string[] = []
 
-  let inTable    = false
-  let tableHead  = true   // 구분선 이전은 헤더
-  let inList     = false
-  let inCode     = false
+  let inTable   = false
+  let tableHead = true
+  let inList    = false
+  let inCode    = false
+  let codeLang  = ''
   let codeLines: string[] = []
 
-  function closeList() {
-    if (inList) { out.push('</ul>'); inList = false }
-  }
-  function closeTable() {
-    if (inTable) { out.push('</tbody></table>'); inTable = false; tableHead = true }
-  }
-  function flushCode() {
-    if (inCode) {
-      out.push(`<pre class="md-code"><code>${codeLines.join('\n')}</code></pre>`)
-      inCode = false
-      codeLines = []
-    }
+  function closeList()  { if (inList)  { out.push('</ul>'); inList = false } }
+  function closeTable() { if (inTable) { out.push('</tbody></table>'); inTable = false; tableHead = true } }
+  function flushCode()  {
+    if (!inCode) return
+    const content = codeLines.join('\n')
+    if      (codeLang === 'flow')  out.push(renderFlow(content))
+    else if (codeLang === 'flow3') out.push(renderFlow3(content))
+    else                           out.push(`<pre class="md-code"><code>${content}</code></pre>`)
+    inCode = false; codeLang = ''; codeLines = []
   }
 
   for (const raw of lines) {
@@ -50,35 +85,26 @@ export function mdToHtml(md: string): string {
       if (!inCode) {
         closeList(); closeTable()
         inCode = true
+        codeLang = line.slice(3).trim().toLowerCase()
       } else {
         flushCode()
       }
       continue
     }
     if (inCode) {
-      codeLines.push(escapeHtml(line))
+      // flow/flow3는 raw 저장 (escapeHtml은 렌더러 내부에서 처리)
+      codeLines.push(codeLang === 'flow' || codeLang === 'flow3' ? line : escapeHtml(line))
       continue
     }
 
     // ── 테이블 행 ──────────────────────────────
     if (line.startsWith('|')) {
       closeList()
-
-      // 구분선 (|---|---|)
       if (/^\|[\s\-\|:]+\|$/.test(line)) {
-        if (inTable && tableHead) {
-          out.push('</thead><tbody>')
-          tableHead = false
-        }
+        if (inTable && tableHead) { out.push('</thead><tbody>'); tableHead = false }
         continue
       }
-
-      if (!inTable) {
-        out.push('<table class="md-table"><thead>')
-        inTable  = true
-        tableHead = true
-      }
-
+      if (!inTable) { out.push('<table class="md-table"><thead>'); inTable = true; tableHead = true }
       const cells = line.replace(/^\||\|$/g, '').split('|').map(c => c.trim())
       const tag = tableHead ? 'th' : 'td'
       out.push(`<tr>${cells.map(c => `<${tag}>${renderInline(c)}</${tag}>`).join('')}</tr>`)
@@ -114,19 +140,13 @@ export function mdToHtml(md: string): string {
     }
 
     // ── 빈 줄 ──────────────────────────────────
-    if (line.trim() === '') {
-      closeList()
-      out.push('<br />')
-      continue
-    }
+    if (line.trim() === '') { closeList(); out.push('<br />'); continue }
 
     // ── 일반 단락 ──────────────────────────────
     closeList()
     out.push(`<p>${renderInline(line)}</p>`)
   }
 
-  closeList()
-  closeTable()
-  flushCode()
+  closeList(); closeTable(); flushCode()
   return out.join('\n')
 }
