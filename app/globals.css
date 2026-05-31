@@ -239,6 +239,27 @@
   margin-bottom: 0.4rem;
 }
 
+/* QMS 문서 내 코드 블록 (프로세스 맵, ASCII 다이어그램) */
+.prose pre.md-code {
+  background: var(--muted);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin: 1rem 0 1.25rem;
+  font-family: 'Consolas', 'D2Coding', 'Nanum Gothic Coding', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre;
+}
+.prose pre.md-code code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
 /* ============================
    Print styles (PDF 내보내기)
    ============================ */

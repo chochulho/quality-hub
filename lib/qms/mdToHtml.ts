@@ -25,6 +25,8 @@ export function mdToHtml(md: string): string {
   let inTable    = false
   let tableHead  = true   // 구분선 이전은 헤더
   let inList     = false
+  let inCode     = false
+  let codeLines: string[] = []
 
   function closeList() {
     if (inList) { out.push('</ul>'); inList = false }
@@ -32,9 +34,31 @@ export function mdToHtml(md: string): string {
   function closeTable() {
     if (inTable) { out.push('</tbody></table>'); inTable = false; tableHead = true }
   }
+  function flushCode() {
+    if (inCode) {
+      out.push(`<pre class="md-code"><code>${codeLines.join('\n')}</code></pre>`)
+      inCode = false
+      codeLines = []
+    }
+  }
 
   for (const raw of lines) {
     const line = raw
+
+    // ── 코드 블록 ─────────────────────────────
+    if (line.startsWith('```')) {
+      if (!inCode) {
+        closeList(); closeTable()
+        inCode = true
+      } else {
+        flushCode()
+      }
+      continue
+    }
+    if (inCode) {
+      codeLines.push(escapeHtml(line))
+      continue
+    }
 
     // ── 테이블 행 ──────────────────────────────
     if (line.startsWith('|')) {
@@ -64,9 +88,10 @@ export function mdToHtml(md: string): string {
     }
 
     // ── 제목 ───────────────────────────────────
-    if (line.startsWith('### ')) { closeList(); out.push(`<h3>${renderInline(line.slice(4))}</h3>`); continue }
-    if (line.startsWith('## '))  { closeList(); out.push(`<h2>${renderInline(line.slice(3))}</h2>`); continue }
-    if (line.startsWith('# '))   { closeList(); out.push(`<h1>${renderInline(line.slice(2))}</h1>`); continue }
+    if (line.startsWith('#### ')) { closeList(); out.push(`<h4>${renderInline(line.slice(5))}</h4>`); continue }
+    if (line.startsWith('### '))  { closeList(); out.push(`<h3>${renderInline(line.slice(4))}</h3>`); continue }
+    if (line.startsWith('## '))   { closeList(); out.push(`<h2>${renderInline(line.slice(3))}</h2>`); continue }
+    if (line.startsWith('# '))    { closeList(); out.push(`<h1>${renderInline(line.slice(2))}</h1>`); continue }
 
     // ── 인용 ───────────────────────────────────
     if (line.startsWith('> '))   { closeList(); out.push(`<blockquote>${renderInline(line.slice(2))}</blockquote>`); continue }
@@ -102,5 +127,6 @@ export function mdToHtml(md: string): string {
 
   closeList()
   closeTable()
+  flushCode()
   return out.join('\n')
 }
