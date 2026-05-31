@@ -18,6 +18,8 @@ interface ChatMessage {
 interface Props {
   scenario: DemoScenario
   scenarioTitle: string
+  onAddRow?: (row: FmeaRow) => void
+  addedKeys?: Set<string>
 }
 
 // ── Constants ──────────────────────────────────────────────────
@@ -55,7 +57,7 @@ function stripXml(text: string): string {
 
 // ── Component ──────────────────────────────────────────────────
 
-export default function FmeaDemoChat({ scenario, scenarioTitle }: Props) {
+export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedKeys }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -219,7 +221,11 @@ export default function FmeaDemoChat({ scenario, scenarioTitle }: Props) {
               {/* FMEA 행 테이블 */}
               {msg.suggestedRows && msg.suggestedRows.length > 0 && (
                 <div className="w-full max-w-none">
-                  <FmeaDemoTable rows={msg.suggestedRows} />
+                  <FmeaDemoTable
+                    rows={msg.suggestedRows}
+                    onAddRow={onAddRow}
+                    addedKeys={addedKeys}
+                  />
                 </div>
               )}
             </div>

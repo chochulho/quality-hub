@@ -1,4 +1,6 @@
-import { AlertTriangle } from 'lucide-react'
+'use client'
+
+import { AlertTriangle, Plus, Check } from 'lucide-react'
 
 export interface FmeaRow {
   processStepName: string
@@ -14,6 +16,10 @@ export interface FmeaRow {
   isSafetyCritical?: boolean
 }
 
+export function rowKey(row: FmeaRow) {
+  return `${row.processStepName}|${row.failureMode}`
+}
+
 const AP_STYLE: Record<string, string> = {
   HIGH:   'bg-red-100 text-red-700 border border-red-200',
   MEDIUM: 'bg-amber-100 text-amber-700 border border-amber-200',
@@ -25,9 +31,11 @@ const SEV_COLOR = (n: number) =>
 
 interface Props {
   rows: FmeaRow[]
+  onAddRow?: (row: FmeaRow) => void
+  addedKeys?: Set<string>
 }
 
-export default function FmeaDemoTable({ rows }: Props) {
+export default function FmeaDemoTable({ rows, onAddRow, addedKeys }: Props) {
   if (rows.length === 0) return null
 
   return (
@@ -36,10 +44,12 @@ export default function FmeaDemoTable({ rows }: Props) {
         <span className="text-[10px] font-bold text-brand-navy uppercase tracking-wide">
           PFMEA 제안 행
         </span>
-        <span className="text-[10px] text-muted-foreground">— 확인 후 APQP Manager에서 저장 가능</span>
+        <span className="text-[10px] text-muted-foreground">
+          {onAddRow ? '— 아래 버튼으로 워크시트에 추가하세요' : '— 확인 후 APQP Manager에서 저장 가능'}
+        </span>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px]">
+        <table className="w-full min-w-[720px]">
           <thead>
             <tr className="bg-muted/50 text-[10px] text-muted-foreground">
               <th className="text-left px-3 py-2 font-semibold">공정</th>
@@ -50,11 +60,14 @@ export default function FmeaDemoTable({ rows }: Props) {
               <th className="text-center px-2 py-2 font-semibold">D</th>
               <th className="text-center px-2 py-2 font-semibold">RPN</th>
               <th className="text-center px-2 py-2 font-semibold">AP</th>
+              {onAddRow && <th className="text-center px-3 py-2 font-semibold text-brand-orange">추가</th>}
             </tr>
           </thead>
           <tbody>
             {rows.map((row, i) => {
               const rpn = (row.severity ?? 1) * (row.occurrence ?? 1) * (row.detection ?? 1)
+              const key = rowKey(row)
+              const isAdded = addedKeys?.has(key) ?? false
               return (
                 <tr key={i} className="border-t border-border hover:bg-muted/30 transition-colors">
                   <td className="px-3 py-2 text-foreground font-medium whitespace-nowrap max-w-[120px] truncate">
@@ -87,6 +100,25 @@ export default function FmeaDemoTable({ rows }: Props) {
                       {row.actionPriority}
                     </span>
                   </td>
+                  {onAddRow && (
+                    <td className="px-3 py-2 text-center">
+                      <button
+                        onClick={() => !isAdded && onAddRow(row)}
+                        disabled={isAdded}
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all ${
+                          isAdded
+                            ? 'bg-green-100 text-green-700 cursor-default'
+                            : 'bg-brand-orange/10 text-brand-orange hover:bg-brand-orange hover:text-white cursor-pointer'
+                        }`}
+                      >
+                        {isAdded ? (
+                          <><Check className="h-2.5 w-2.5" />추가됨</>
+                        ) : (
+                          <><Plus className="h-2.5 w-2.5" />추가</>
+                        )}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               )
             })}

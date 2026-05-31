@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Bot, Zap, Car, Battery } from 'lucide-react'
 import FmeaDemoChat, { type DemoScenario } from '@/components/demo/FmeaDemoChat'
+import FmeaWorksheet from '@/components/demo/FmeaWorksheet'
+import { type FmeaRow, rowKey } from '@/components/demo/FmeaDemoTable'
 
 const SCENARIOS: {
   id: DemoScenario
@@ -35,8 +37,27 @@ const SCENARIOS: {
 
 export default function FmeaDemoPage() {
   const [selected, setSelected] = useState<DemoScenario | null>(null)
+  const [fmeaRows, setFmeaRows] = useState<FmeaRow[]>([])
 
   const selectedScenario = SCENARIOS.find((s) => s.id === selected)
+
+  const addedKeys = useMemo(
+    () => new Set(fmeaRows.map(rowKey)),
+    [fmeaRows]
+  )
+
+  function handleAddRow(row: FmeaRow) {
+    const key = rowKey(row)
+    setFmeaRows((prev) => {
+      if (prev.some((r) => rowKey(r) === key)) return prev
+      return [...prev, row]
+    })
+  }
+
+  function handleScenarioChange() {
+    setSelected(null)
+    setFmeaRows([])
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 md:py-16">
@@ -117,7 +138,7 @@ export default function FmeaDemoPage() {
         <>
           <div className="flex items-center gap-3 mb-4">
             <button
-              onClick={() => setSelected(null)}
+              onClick={handleScenarioChange}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               ← 시나리오 변경
@@ -127,8 +148,11 @@ export default function FmeaDemoPage() {
             <FmeaDemoChat
               scenario={selected}
               scenarioTitle={selectedScenario?.title ?? ''}
+              onAddRow={handleAddRow}
+              addedKeys={addedKeys}
             />
           </div>
+          <FmeaWorksheet rows={fmeaRows} />
         </>
       )}
     </div>
