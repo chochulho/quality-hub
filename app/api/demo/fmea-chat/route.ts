@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     // 비스트리밍 호출 — try-catch 안에서 완전히 처리
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
+      max_tokens: 3000,
       system: scenarioDef.systemPrompt,
       messages: messages.map((m: { role: string; content: string }) => ({
         role: m.role as 'user' | 'assistant',

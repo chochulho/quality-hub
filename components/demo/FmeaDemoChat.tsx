@@ -52,7 +52,11 @@ function parseFmeaRows(text: string): FmeaRow[] {
 }
 
 function stripXml(text: string): string {
-  return text.replace(/<pfmea_rows>[\s\S]*?<\/pfmea_rows>/g, '').trim()
+  // 완전한 태그 제거
+  let result = text.replace(/<pfmea_rows>[\s\S]*?<\/pfmea_rows>/g, '')
+  // 스트리밍 중 열린 태그만 있는 경우 — 이후 내용 전부 숨김
+  result = result.replace(/<pfmea_rows>[\s\S]*/g, '')
+  return result.trim()
 }
 
 // ── Component ──────────────────────────────────────────────────
