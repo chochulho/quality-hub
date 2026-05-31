@@ -117,9 +117,9 @@ export default function MatrixDocPreview({ content }: { content: string }) {
                 return (
                   <th key={i} className="px-0.5 py-2 border-b border-r border-border last:border-r-0 text-center min-w-[44px] max-w-[56px]"
                     title={`${docNo} ${short}`}>
-                    {/* 세로 헤더: 문서번호 + 약식 제목 */}
+                    {/* 세로 헤더: 문서번호 + 약식 제목 — vertical-lr 로 글자 정방향 유지 */}
                     <div className="flex flex-col items-center gap-0.5"
-                      style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', height: 96 }}>
+                      style={{ writingMode: 'vertical-lr', textOrientation: 'mixed', height: 96 }}>
                       <span className="font-bold text-brand-navy text-[11px] whitespace-nowrap">{docNo}</span>
                       <span className="font-medium text-muted-foreground text-[10px] whitespace-nowrap">{short}</span>
                     </div>
