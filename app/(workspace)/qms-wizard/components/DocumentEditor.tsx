@@ -7,6 +7,10 @@
 import { useState } from "react"
 import type { GeneratedDoc } from "@/types/qmsWizard"
 import { incrementVersion } from "@/lib/qms/docStorage"
+import TurtlePreview from "@/components/qms/TurtlePreview"
+import MatrixDocPreview from "@/components/qms/MatrixDocPreview"
+import KpiDocPreview from "@/components/qms/KpiDocPreview"
+import { mdToHtml } from "@/lib/qms/mdToHtml"
 import { Eye, Code } from "lucide-react"
 
 export interface DocumentEditorProps {
@@ -74,9 +78,16 @@ export default function DocumentEditor({ doc, mode, onSave }: DocumentEditorProp
       </div>
 
       {preview ? (
-        // [TODO: MDXRemote 미리보기]
-        <div className="prose max-w-none text-sm whitespace-pre-wrap border border-border rounded-xl p-4 min-h-[200px]">
-          {content}
+        <div className="border border-border rounded-xl p-4 min-h-[200px] text-sm overflow-auto">
+          {doc.type === 'turtle' ? (
+            <TurtlePreview content={content} />
+          ) : doc.type === 'matrix' ? (
+            <MatrixDocPreview content={content} />
+          ) : doc.type === 'kpi' ? (
+            <KpiDocPreview content={content} />
+          ) : (
+            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: mdToHtml(content) }} />
+          )}
         </div>
       ) : (
         <textarea

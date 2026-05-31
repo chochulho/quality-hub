@@ -10,6 +10,10 @@ import type { GeneratedDoc } from "@/types/qmsWizard"
 import { loadDoc } from "@/lib/qms/docStorage"
 import { getRelatedTool } from "@/lib/qms/relatedTools"
 import RelatedToolCTA from "@/components/qms/RelatedToolCTA"
+import TurtlePreview from "@/components/qms/TurtlePreview"
+import MatrixDocPreview from "@/components/qms/MatrixDocPreview"
+import KpiDocPreview from "@/components/qms/KpiDocPreview"
+import { mdToHtml } from "@/lib/qms/mdToHtml"
 import { ArrowLeft, PenLine, Printer } from "lucide-react"
 
 const STATUS_BADGE: Record<GeneratedDoc['status'], string> = {
@@ -77,9 +81,20 @@ export default function DocDetailPage() {
         </div>
       </div>
 
-      {/* 본문 — [TODO: MDXRemote 렌더링] */}
-      <div className="prose max-w-none whitespace-pre-wrap text-sm text-foreground">
-        {doc.content || '[TODO: 문서 본문 렌더링]'}
+      {/* 본문 — 타입별 렌더링 */}
+      <div className="text-sm text-foreground">
+        {doc.type === 'turtle' ? (
+          <TurtlePreview content={doc.content} />
+        ) : doc.type === 'matrix' ? (
+          <MatrixDocPreview content={doc.content} />
+        ) : doc.type === 'kpi' ? (
+          <KpiDocPreview content={doc.content} />
+        ) : (
+          <div
+            className="prose max-w-none"
+            dangerouslySetInnerHTML={{ __html: mdToHtml(doc.content) }}
+          />
+        )}
       </div>
 
       {/* 관련 도구 CTA */}
