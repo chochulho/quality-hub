@@ -24,7 +24,7 @@ interface Props {
 
 // ── Constants ──────────────────────────────────────────────────
 
-const MAX_TURNS = 5   // user 메시지 기준
+const MAX_TURNS = 2   // user 메시지 기준
 
 const QUICK_PROMPTS: Record<DemoScenario, string[]> = {
   brake_pedal: [
@@ -185,9 +185,9 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
           <span className="text-sm font-semibold text-brand-navy">{scenarioTitle}</span>
         </div>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-          turnsLeft <= 1
+          turnsLeft <= 0
             ? 'bg-red-100 text-red-600'
-            : turnsLeft <= 2
+            : turnsLeft <= 1
             ? 'bg-amber-100 text-amber-700'
             : 'bg-muted text-muted-foreground'
         }`}>

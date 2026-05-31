@@ -52,6 +52,7 @@ export default function FmeaDemoTable({ rows, onAddRow, addedKeys }: Props) {
         <table className="w-full min-w-[720px]">
           <thead>
             <tr className="bg-muted/50 text-[10px] text-muted-foreground">
+              {onAddRow && <th className="text-center px-3 py-2 font-semibold text-brand-orange w-16">추가</th>}
               <th className="text-left px-3 py-2 font-semibold">공정</th>
               <th className="text-left px-3 py-2 font-semibold">불량 유형</th>
               <th className="text-left px-3 py-2 font-semibold">영향</th>
@@ -60,7 +61,6 @@ export default function FmeaDemoTable({ rows, onAddRow, addedKeys }: Props) {
               <th className="text-center px-2 py-2 font-semibold">D</th>
               <th className="text-center px-2 py-2 font-semibold">RPN</th>
               <th className="text-center px-2 py-2 font-semibold">AP</th>
-              {onAddRow && <th className="text-center px-3 py-2 font-semibold text-brand-orange">추가</th>}
             </tr>
           </thead>
           <tbody>
@@ -70,6 +70,25 @@ export default function FmeaDemoTable({ rows, onAddRow, addedKeys }: Props) {
               const isAdded = addedKeys?.has(key) ?? false
               return (
                 <tr key={i} className="border-t border-border hover:bg-muted/30 transition-colors">
+                  {onAddRow && (
+                    <td className="px-3 py-2 text-center">
+                      <button
+                        onClick={() => !isAdded && onAddRow(row)}
+                        disabled={isAdded}
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all ${
+                          isAdded
+                            ? 'bg-green-100 text-green-700 cursor-default'
+                            : 'bg-brand-orange/10 text-brand-orange hover:bg-brand-orange hover:text-white cursor-pointer'
+                        }`}
+                      >
+                        {isAdded ? (
+                          <><Check className="h-2.5 w-2.5" />추가됨</>
+                        ) : (
+                          <><Plus className="h-2.5 w-2.5" />추가</>
+                        )}
+                      </button>
+                    </td>
+                  )}
                   <td className="px-3 py-2 text-foreground font-medium whitespace-nowrap max-w-[120px] truncate">
                     {row.processStepName}
                   </td>
@@ -100,25 +119,6 @@ export default function FmeaDemoTable({ rows, onAddRow, addedKeys }: Props) {
                       {row.actionPriority}
                     </span>
                   </td>
-                  {onAddRow && (
-                    <td className="px-3 py-2 text-center">
-                      <button
-                        onClick={() => !isAdded && onAddRow(row)}
-                        disabled={isAdded}
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all ${
-                          isAdded
-                            ? 'bg-green-100 text-green-700 cursor-default'
-                            : 'bg-brand-orange/10 text-brand-orange hover:bg-brand-orange hover:text-white cursor-pointer'
-                        }`}
-                      >
-                        {isAdded ? (
-                          <><Check className="h-2.5 w-2.5" />추가됨</>
-                        ) : (
-                          <><Plus className="h-2.5 w-2.5" />추가</>
-                        )}
-                      </button>
-                    </td>
-                  )}
                 </tr>
               )
             })}
