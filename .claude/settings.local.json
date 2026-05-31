@@ -116,7 +116,10 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\user\\\\fmea\" -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
       "Bash(npx --yes vercel ls)",
-      "Bash(wait)"
+      "Bash(wait)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts|mdx\\)$\")",
+      "Bash(xargs grep -l \"builder\\\\|Builder\")",
+      "Bash(supabase --version)"
     ],
     "additionalDirectories": [
       "c:\\Users\\user\\quality-hub\\app\\api\\sso"

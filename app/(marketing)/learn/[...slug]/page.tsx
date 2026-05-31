@@ -12,6 +12,8 @@ import { KanbanFlowDemo } from "@/components/lean/KanbanFlowDemo";
 import { OCCurve } from "@/components/mdx/OCCurve";
 import { NormalCurve } from "@/components/mdx/NormalCurve";
 import { DistributionMap } from "@/components/mdx/DistributionMap";
+import { DocumentHierarchy } from "@/components/mdx/DocumentHierarchy";
+import { TurtleDiagram } from "@/components/mdx/TurtleDiagram";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -146,7 +148,7 @@ export default async function LearnPostPage({ params }: PageProps) {
             <MDXRemote
               source={content}
               options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
-              components={{ RevealAnswer, ExamCase, KanbanFlowDemo, OCCurve, NormalCurve, DistributionMap }}
+              components={{ RevealAnswer, ExamCase, KanbanFlowDemo, OCCurve, NormalCurve, DistributionMap, DocumentHierarchy, TurtleDiagram }}
             />
           </div>
         </article>
