@@ -6,6 +6,10 @@ import { recommendProcesses } from "@/lib/qms/processRecommender"
 import { saveDoc } from "@/lib/qms/docStorage"
 import { getRelatedTool } from "@/lib/qms/relatedTools"
 import RelatedToolCTA from "@/components/qms/RelatedToolCTA"
+import TurtlePreview from "@/components/qms/TurtlePreview"
+import MatrixDocPreview from "@/components/qms/MatrixDocPreview"
+import KpiDocPreview from "@/components/qms/KpiDocPreview"
+import { mdToHtml } from "@/lib/qms/mdToHtml"
 import { ArrowLeft, Download, Library, FileText } from "lucide-react"
 import Link from "next/link"
 
@@ -32,27 +36,6 @@ const TYPE_LABEL: Record<string, string> = {
   matrix: '매트릭스', form: '양식',
 }
 
-// 간단한 Markdown → HTML 변환 (외부 라이브러리 없이)
-function renderMarkdownBasic(md: string): string {
-  return md
-    // h1~h3
-    .replace(/^### (.+)$/gm, '<h3 class="text-sm font-bold text-brand-navy mt-4 mb-1">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-base font-bold text-brand-navy mt-5 mb-2 border-b border-border pb-1">$2</h2>'.replace('$2','$1'))
-    .replace(/^# (.+)$/gm, '<h1 class="text-lg font-extrabold text-brand-navy mb-3">$1</h1>')
-    // 표 (간단 처리: 그대로 유지)
-    .replace(/^\|(.+)\|$/gm, '<div class="font-mono text-xs text-muted-foreground">|$1|</div>')
-    // bold
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    // 인용
-    .replace(/^> (.+)$/gm, '<blockquote class="border-l-2 border-brand-orange pl-3 text-xs text-muted-foreground italic my-2">$1</blockquote>')
-    // 리스트
-    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal text-sm">$2</li>')
-    .replace(/^[-*] (.+)$/gm, '<li class="ml-4 list-disc text-sm">$1</li>')
-    // 구분선
-    .replace(/^---$/gm, '<hr class="border-border my-3" />')
-    // 줄바꿈
-    .replace(/\n/g, '<br />')
-}
 
 export default function Step5_Preview({ state, onUpdate, onPrev }: Props) {
   const docList = recommendProcesses(state)
@@ -176,11 +159,21 @@ export default function Step5_Preview({ state, onUpdate, onPrev }: Props) {
                   </a>
                 </div>
               </div>
-              {/* 문서 내용 */}
-              <div
-                className="flex-1 overflow-y-auto px-4 py-4 text-sm max-h-[360px] prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: renderMarkdownBasic(selectedDoc.content) }}
-              />
+              {/* 문서 내용 — 타입별 전용 렌더러 */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 text-sm max-h-[420px]">
+                {selectedDoc.type === 'turtle' ? (
+                  <TurtlePreview content={selectedDoc.content} />
+                ) : selectedDoc.type === 'matrix' ? (
+                  <MatrixDocPreview content={selectedDoc.content} />
+                ) : selectedDoc.type === 'kpi' ? (
+                  <KpiDocPreview content={selectedDoc.content} />
+                ) : (
+                  <div
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: mdToHtml(selectedDoc.content) }}
+                  />
+                )}
+              </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center min-h-[200px] text-center px-6 text-muted-foreground">

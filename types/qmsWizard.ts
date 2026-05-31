@@ -71,6 +71,8 @@ export interface WizardState {
 
   // Step 3
   departments: Department[]
+  // orgMatrix: functionId → deptId → '●' | '○' | ''  (Step3 매트릭스 저장)
+  orgMatrix: Record<string, Record<string, '●' | '○' | ''>>
 
   // Step 4
   qualityPolicy: string
@@ -124,6 +126,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
     afterSales: false,
   },
   departments: [],
+  orgMatrix: {},
   qualityPolicy: '',
   generatedDocs: null,
 }
