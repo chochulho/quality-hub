@@ -45,6 +45,12 @@ export function renderTemplate(raw: string, state: WizardState): string {
     evalCond(cond.trim(), state) ? content : ''
   )
 
+  // 3. 부정 조건 섹션 {{^cond}}…{{/cond}} — 조건이 false 일 때 표시
+  const negRegex = /\{\{\^([^}]+)\}\}([\s\S]*?)\{\{\/\1\}\}/g
+  result = result.replace(negRegex, (_, cond, content) =>
+    evalCond(cond.trim(), state) ? '' : content
+  )
+
   return result
 }
 

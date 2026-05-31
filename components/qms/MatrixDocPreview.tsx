@@ -1,6 +1,36 @@
 // MTX-001 Markdown → 스크롤 가능한 스타일드 테이블 렌더링
 // 조항(행) × 문서(열) 매트릭스 — sticky 첫 열, 세로 헤더에 문서번호+약식 제목
 
+// ISO 9001 / IATF 16949 조항 번호 → 제목 매핑
+const CLAUSE_TITLE: Record<string, string> = {
+  '4.1':  '조직 상황 이해',
+  '4.2':  '이해관계자 니즈',
+  '4.3':  '적용 범위',
+  '4.4':  'QMS 및 프로세스',
+  '5.1':  '리더십·의지표명',
+  '5.2':  '품질방침',
+  '5.3':  '역할·책임·권한',
+  '6.1':  '리스크와 기회',
+  '6.2':  '품질목표',
+  '7.1':  '자원',
+  '7.2':  '역량',
+  '7.3':  '인식',
+  '7.4':  '의사소통',
+  '7.5':  '문서화된 정보',
+  '8.1':  '운용 기획·관리',
+  '8.2':  '제품·서비스 요구사항',
+  '8.3':  '설계·개발',
+  '8.4':  '외부 공급 관리',
+  '8.5':  '생산·서비스 제공',
+  '8.6':  '제품·서비스 불출',
+  '8.7':  '부적합 출력물',
+  '9.1':  '모니터링·분석·평가',
+  '9.2':  '내부심사',
+  '9.3':  '경영검토',
+  '10.2': '부적합·시정조치',
+  '10.3': '지속적 개선',
+}
+
 // 문서번호 → 약식 제목 매핑 (매트릭스 헤더 표시용)
 const DOC_SHORT_TITLE: Record<string, string> = {
   'QM-001':  '품질매뉴얼',
@@ -79,19 +109,19 @@ export default function MatrixDocPreview({ content }: { content: string }) {
           <thead>
             <tr className="bg-muted/40">
               {/* 조항 고정 헤더 */}
-              <th className="sticky left-0 z-20 bg-muted/60 text-left px-3 py-2 font-bold text-brand-navy border-b border-r border-border whitespace-nowrap min-w-[72px]">
+              <th className="sticky left-0 z-20 bg-muted/60 text-left px-3 py-2 font-bold text-brand-navy border-b border-r border-border whitespace-nowrap min-w-[160px]">
                 조항
               </th>
               {docCols.map((docNo, i) => {
                 const short = DOC_SHORT_TITLE[docNo] ?? docNo
                 return (
-                  <th key={i} className="px-1 py-2 border-b border-r border-border last:border-r-0 text-center min-w-[52px] max-w-[64px]"
-                    title={docNo}>
+                  <th key={i} className="px-0.5 py-2 border-b border-r border-border last:border-r-0 text-center min-w-[44px] max-w-[56px]"
+                    title={`${docNo} ${short}`}>
                     {/* 세로 헤더: 문서번호 + 약식 제목 */}
                     <div className="flex flex-col items-center gap-0.5"
-                      style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', height: 72 }}>
-                      <span className="font-bold text-brand-navy text-[10px] whitespace-nowrap">{docNo}</span>
-                      <span className="font-normal text-muted-foreground text-[9px] whitespace-nowrap">{short}</span>
+                      style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', height: 96 }}>
+                      <span className="font-bold text-brand-navy text-[11px] whitespace-nowrap">{docNo}</span>
+                      <span className="font-medium text-muted-foreground text-[10px] whitespace-nowrap">{short}</span>
                     </div>
                   </th>
                 )
@@ -104,8 +134,11 @@ export default function MatrixDocPreview({ content }: { content: string }) {
               const clean = cleanClause(clause)
               return (
                 <tr key={ri} className="hover:bg-muted/10 transition-colors">
-                  <td className="sticky left-0 z-10 bg-white border-b border-r border-border px-3 py-1.5 font-bold text-brand-navy whitespace-nowrap text-xs">
-                    {clean}
+                  <td className="sticky left-0 z-10 bg-white border-b border-r border-border px-3 py-1.5 whitespace-nowrap min-w-[160px]">
+                    <span className="font-bold text-brand-navy text-xs">{clean}</span>
+                    {CLAUSE_TITLE[clean] && (
+                      <span className="ml-1.5 text-[11px] text-muted-foreground font-normal">{CLAUSE_TITLE[clean]}</span>
+                    )}
                   </td>
                   {cells.map((cell, ci) => (
                     <td key={ci} className="border-b border-r border-border last:border-r-0 text-center p-0">
