@@ -22,19 +22,11 @@ export default function Hero() {
             <p className="text-sm font-medium text-brand-orange mb-4">
               중소기업 품질팀을 위한 완성형 솔루션
             </p>
-            <Link
-              href="/learn/qms/documentation"
-              className="group block mb-6"
-            >
-              <h1 className="text-4xl md:text-5xl font-extrabold text-brand-navy leading-tight group-hover:text-brand-navy-dark transition-colors duration-200">
-                <span className="text-brand-orange">6개월</span> QMS 구축을
-                <br />
-                <span className="text-brand-orange">1주일</span>로.
-              </h1>
-              <span className="mt-1 inline-block text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                문서화 체계 학습하기 →
-              </span>
-            </Link>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-brand-navy leading-tight mb-6">
+              <span className="text-brand-orange">6개월</span> QMS 구축을
+              <br />
+              <span className="text-brand-orange">1주일</span>로.
+            </h1>
             <p className="text-lg text-muted-foreground mb-4 max-w-lg" style={{ wordBreak: "keep-all" }}>
               심사·APQP·게이지·부적합·변경관리 —{" "}
               <strong className="text-foreground">
