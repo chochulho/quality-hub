@@ -3,6 +3,7 @@ import TrustCards from "@/components/sections/TrustCards";
 import FreeToolsSection from "@/components/sections/FreeToolsSection";
 import ToolGrid from "@/components/sections/ToolGrid";
 import LearnPreview from "@/components/sections/LearnPreview";
+import NewFactoryBanner from "@/components/sections/NewFactoryBanner";
 import BlogPreview from "@/components/sections/BlogPreview";
 import CtaSection from "@/components/sections/CtaSection";
 
@@ -14,6 +15,7 @@ export default function HomePage() {
       <FreeToolsSection />
       <ToolGrid />
       <LearnPreview />
+      <NewFactoryBanner />
       <BlogPreview />
       <CtaSection />
     </>

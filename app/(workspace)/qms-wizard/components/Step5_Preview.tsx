@@ -10,7 +10,7 @@ import TurtlePreview from "@/components/qms/TurtlePreview"
 import MatrixDocPreview from "@/components/qms/MatrixDocPreview"
 import KpiDocPreview from "@/components/qms/KpiDocPreview"
 import { mdToHtml } from "@/lib/qms/mdToHtml"
-import { ArrowLeft, Download, Library, FileText } from "lucide-react"
+import { ArrowLeft, Download, Library, FileText, CheckCircle, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 interface Props {
@@ -224,6 +224,39 @@ export default function Step5_Preview({ state, onUpdate, onPrev }: Props) {
           </Link>
         </div>
       )}
+
+      {/* 전문가 상담 안내 — 생성 완료 여부와 관계없이 항상 표시 */}
+      <div className="rounded-2xl border border-brand-navy/20 bg-brand-navy/[0.03] p-5 space-y-4">
+        <div className="space-y-1">
+          <p className="text-brand-orange text-xs font-medium">무료 30분 화상 상담</p>
+          <h3 className="font-extrabold text-brand-navy text-sm leading-snug">
+            이 결과를 회사 표준문서로 만들려면?
+          </h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            AI 위자드 결과를 자동차 부품 품질 30년 경력 전문가와 함께 검토하고,<br className="hidden sm:block" />
+            IATF 16949 인증 준비를 단계별로 진행해 드립니다.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+          {[
+            'AI 생성 매뉴얼·절차서 초안 전문가 검토',
+            '회사 규모에 맞는 맞춤 패키지 제안',
+            '30년 품질 경력 전문가 직접 상담',
+            'IATF 16949 인증 단계별 가이드',
+          ].map(item => (
+            <div key={item} className="flex items-start gap-1.5 text-xs">
+              <CheckCircle className="h-3.5 w-3.5 text-success mt-0.5 shrink-0" />
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+        <Link
+          href="/qms-consultation"
+          className="inline-flex items-center gap-2 bg-brand-orange text-white rounded-full px-6 py-2.5 text-sm font-semibold hover:bg-brand-orange-hover transition-all hover:-translate-y-0.5"
+        >
+          무료 상담 신청 <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
 
       <button
         type="button"
