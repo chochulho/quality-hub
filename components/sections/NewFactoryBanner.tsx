@@ -51,10 +51,13 @@ export default function NewFactoryBanner() {
             </Link>
           </div>
 
-          {/* 우측 장식 — 신뢰 배지 */}
-          <div className="md:w-72 shrink-0">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
-              <p className="text-white/50 text-xs font-medium uppercase tracking-wide">포함 내용</p>
+          {/* 우측 — 클릭 가능한 포함 내용 카드 */}
+          <Link href="/qms-wizard" className="md:w-72 shrink-0 group">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4 transition-all duration-200 group-hover:bg-white/10 group-hover:border-white/20 group-hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <p className="text-white/50 text-xs font-medium uppercase tracking-wide">포함 내용</p>
+                <ArrowRight className="h-3.5 w-3.5 text-white/30 group-hover:text-brand-orange transition-colors" />
+              </div>
               {[
                 { label: 'AI 문서 초안', desc: '매뉴얼 · 절차서 · 지침서' },
                 { label: '전문가 상담', desc: '무료 30분 화상 검토' },
@@ -70,7 +73,7 @@ export default function NewFactoryBanner() {
                 </div>
               ))}
             </div>
-          </div>
+          </Link>
 
         </div>
       </div>
