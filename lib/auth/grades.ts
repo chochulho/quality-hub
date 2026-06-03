@@ -86,7 +86,7 @@ export const TOOLS: Record<ToolId, ToolDef> = {
       'PPAP 18개 요소 자동화 · Gate Review',
       'AI 다국어 번역 (영어·중국어·베트남어)',
     ],
-    href: 'https://apqpmanager.com',
+    href: '/api/sso/apqp-manager',
     color: 'bg-brand-orange',
   },
   'gauge-manager': {
