@@ -15,6 +15,8 @@ import MatrixDocPreview from "@/components/qms/MatrixDocPreview"
 import KpiDocPreview from "@/components/qms/KpiDocPreview"
 import { mdToHtml } from "@/lib/qms/mdToHtml"
 import { ArrowLeft, PenLine, Printer } from "lucide-react"
+import ProcessFlowChart from "@/components/qms/ProcessFlowChart"
+import { getFlowchart } from "@/lib/qms/flowchartDefs"
 
 const STATUS_BADGE: Record<GeneratedDoc['status'], string> = {
   draft:    'bg-amber-50 text-amber-800',
@@ -80,6 +82,17 @@ export default function DocDetailPage() {
           </Link>
         </div>
       </div>
+
+      {/* 흐름도 — process 타입이고 정의가 있을 때만 표시 */}
+      {doc.type === 'process' && (() => {
+        const flow = getFlowchart(doc.docNo)
+        return flow ? (
+          <div className="mb-10">
+            <h2 className="text-sm font-semibold text-foreground mb-4">프로세스 흐름도</h2>
+            <ProcessFlowChart flow={flow} />
+          </div>
+        ) : null
+      })()}
 
       {/* 본문 — 타입별 렌더링 */}
       <div className="text-sm text-foreground">
