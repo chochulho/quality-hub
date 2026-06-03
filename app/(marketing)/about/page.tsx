@@ -3,7 +3,7 @@ import { BookOpen, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "소개",
-  description: "QmIntel을 만든 이유와 운영자 소개입니다.",
+  description: "QMintel을 만든 이유와 운영자 소개입니다.",
 };
 
 export default function AboutPage() {
@@ -19,7 +19,7 @@ export default function AboutPage() {
         </p>
         <p className="text-muted-foreground leading-relaxed mt-3">
           품질 분야의 지식은 규격집, 교재, 커뮤니티에 흩어져 있습니다.
-          QmIntel은 이를 하나의 체계적인 공간에 정리하고,
+          QMintel은 이를 하나의 체계적인 공간에 정리하고,
           실무에서 바로 쓸 수 있는 도구들과 연결합니다.
         </p>
       </section>
@@ -36,8 +36,8 @@ export default function AboutPage() {
       <section className="mb-12">
         <h2 className="text-xl font-bold text-brand-navy mb-4">자매 도구</h2>
         <p className="text-muted-foreground mb-5">
-          QmIntel은 아래 세 가지 SaaS 도구들의 지식 베이스 역할을 합니다.
-          각 도구는 독립적으로 사용 가능하지만, QmIntel에서 배운 내용을 실무에 적용하는 가장 빠른 방법입니다.
+          QMintel은 아래 세 가지 SaaS 도구들의 지식 베이스 역할을 합니다.
+          각 도구는 독립적으로 사용 가능하지만, QMintel에서 배운 내용을 실무에 적용하는 가장 빠른 방법입니다.
         </p>
         <div className="space-y-4">
           {[

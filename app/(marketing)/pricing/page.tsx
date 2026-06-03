@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Check, ArrowRight, HelpCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -43,9 +44,9 @@ async function getPublicPlans(): Promise<PlanTier[]> {
 function getIncludedTools(planId: string, entitlements: Record<string, unknown>): ToolId[] {
   if (planId === 'free') return []
   if (planId === 'business' || planId === 'enterprise') {
-    return ['auditsay', 'nc-manager', 'apqp-manager', 'gauge-manager', '4m-change-manager']
+    return ['auditsay', 'nc-manager', '4m-change-manager', 'apqp-manager', 'gauge-manager']
   }
-  // starter/team: selectable — 대표 도구 표시
+  // starter/team: 기본 3개 중 선택 (APQP·Gauge는 Business 전용)
   if (planId === 'starter')  return ['auditsay']
   if (planId === 'team')     return ['auditsay', 'nc-manager', '4m-change-manager']
   return []
@@ -113,25 +114,25 @@ const STATIC_FALLBACK: PlanTier[] = [
     ctaLabel: '무료로 시작',
   },
   {
-    id: 'starter', name: 'Starter', label: '도구 1개 선택',
+    id: 'starter', name: 'Starter', label: '기본 도구 1개 선택',
     monthlyKRW: 24500, annualKRW: 245000, toolCount: 1, includedTools: ['auditsay'],
     highlight: false,
-    features: ['SaaS 도구 1개 선택', 'SPC · QC7 계산 도구', '팀원 최대 10명', '이메일 지원'],
+    features: ['기본 3개 도구 중 1개 선택', 'SPC · QC7 계산 도구', '팀원 최대 10명', '이메일 지원'],
     ctaLabel: 'Starter 시작하기',
   },
   {
-    id: 'team', name: 'Team', label: '도구 3개 선택',
+    id: 'team', name: 'Team', label: '기본 도구 3개 전체',
     monthlyKRW: 74500, annualKRW: 745000, toolCount: 3, includedTools: ['auditsay', 'nc-manager', '4m-change-manager'],
     highlight: true,
-    features: ['SaaS 도구 3개 선택', 'SPC · QC7 계산 도구', '팀원 최대 30명 · 사업장 2개', '이메일·채팅 지원'],
+    features: ['기본 3개 도구 전체 포함', 'SPC · QC7 계산 도구', '팀원 최대 30명 · 사업장 2개', '이메일·채팅 지원'],
     ctaLabel: 'Team 시작하기',
   },
   {
     id: 'business', name: 'Business', label: '5개 도구 전체',
     monthlyKRW: 195000, annualKRW: 1950000, toolCount: 5,
-    includedTools: ['auditsay', 'nc-manager', 'apqp-manager', 'gauge-manager', '4m-change-manager'],
+    includedTools: ['auditsay', 'nc-manager', '4m-change-manager', 'apqp-manager', 'gauge-manager'],
     highlight: false,
-    features: ['5개 SaaS 도구 전체 포함', '팀원 최대 80명 · 사업장 3개', 'SSO 자동 로그인 (애드온)', '전담 지원'],
+    features: ['5개 SaaS 도구 전체 포함', 'APQP Manager · Gauge Manager 포함', '팀원 최대 80명 · 사업장 3개', 'SSO 자동 로그인 (애드온)', '전담 지원'],
     ctaLabel: 'Business 시작하기',
   },
 ]
@@ -199,7 +200,26 @@ const FAQ = [
 ]
 
 // ── Page (Server Component) ───────────────────────────────────
-export const metadata = { title: '요금제' }
+const PRICING_TITLE = "요금제 | QMintel — Free·Starter·Team·Business";
+const PRICING_DESC =
+  "QMintel 요금제 비교. Free 무료부터 Business 5개 도구 전체까지. 도구 1개 선택부터 시작하는 합리적 가격.";
+
+export const metadata: Metadata = {
+  title: PRICING_TITLE,
+  description: PRICING_DESC,
+  openGraph: {
+    title: PRICING_TITLE,
+    description: PRICING_DESC,
+    type: "website",
+    locale: "ko_KR",
+    siteName: "QMintel",
+  },
+  twitter: {
+    card: "summary",
+    title: PRICING_TITLE,
+    description: PRICING_DESC,
+  },
+};
 
 export default async function PricingPage() {
   const tiers = await getPublicPlans()

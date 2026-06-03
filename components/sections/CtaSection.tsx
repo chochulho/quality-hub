@@ -32,13 +32,13 @@ export default function CtaSection() {
               </p>
             </div>
             <div className="mt-6">
-              <Link
-                href="/about"
+              <a
+                href="mailto:support@qmintel.com?subject=QMintel 도입 문의"
                 className="inline-flex items-center gap-2 bg-brand-orange text-white rounded-full px-6 py-3 text-sm font-semibold hover:bg-brand-orange-hover hover:-translate-y-0.5 transition-all duration-200"
               >
                 도입 문의하기
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -70,12 +70,6 @@ export default function CtaSection() {
           </div>
 
         </div>
-
-        {/* 비자동차 회사 메시지 */}
-        <p className="mt-8 text-center text-sm text-muted-foreground" style={{ wordBreak: 'keep-all' }}>
-          <span className="font-semibold text-foreground">자동차가 아닌 회사도</span>{' '}
-          AuditSay·Gauge Manager·APQP Manager를 단독으로 사용할 수 있습니다.
-        </p>
 
       </div>
     </section>

@@ -21,7 +21,7 @@ export default function RequestPage() {
     e.preventDefault();
     // TODO: Supabase 또는 이메일 API 연동
     // 현재는 mailto 폴백
-    const subject = encodeURIComponent(`[QmIntel ${REQUEST_TYPES.find(t => t.value === type)?.label}] ${title}`);
+    const subject = encodeURIComponent(`[QMintel ${REQUEST_TYPES.find(t => t.value === type)?.label}] ${title}`);
     const body = encodeURIComponent(`이메일: ${email}\n\n내용:\n${content}`);
     window.open(`mailto:support@qmintel.com?subject=${subject}&body=${body}`);
     setSent(true);

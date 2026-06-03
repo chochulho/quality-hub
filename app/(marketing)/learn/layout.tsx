@@ -5,7 +5,7 @@ import { LearnSidebar } from "@/components/learn/LearnSidebar";
 export const metadata: Metadata = {
   title: {
     default: "학습 위키",
-    template: "%s | 학습 위키 | QmIntel",
+    template: "%s | 학습 위키 | QMintel",
   },
 };
 

@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | QmIntel',
-    default: 'QmIntel',
+    template: '%s | QMintel',
+    default: 'QMintel',
   },
 }
 

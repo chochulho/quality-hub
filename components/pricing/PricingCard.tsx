@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Check, ArrowRight } from 'lucide-react'
-import { ALL_TOOL_IDS, TOOLS, type ToolId } from '@/lib/auth/grades'
+import { ALL_TOOL_IDS, TOOLS, PREMIUM_TOOL_IDS, type ToolId } from '@/lib/auth/grades'
 
 export interface PlanTier {
   id: string
@@ -53,14 +53,14 @@ export default function PricingCard({ tier }: PricingCardProps) {
         {/* 가격 */}
         <div className="mb-6">
           {isFree ? (
-            <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
+            <div className={`text-4xl font-extrabold whitespace-nowrap ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
               무료
             </div>
           ) : (
             <div>
               {/* 월간 가격 */}
               <div data-monthly="">
-                <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
+                <div className={`text-4xl font-extrabold whitespace-nowrap ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
                   ₩{(tier.monthlyKRW ?? 0).toLocaleString()}
                   <span className={`text-base font-normal ml-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
                     /월
@@ -69,7 +69,7 @@ export default function PricingCard({ tier }: PricingCardProps) {
               </div>
               {/* 연간 가격 (초기 hidden) */}
               <div data-annual="" style={{ display: 'none' }}>
-                <div className={`text-4xl font-extrabold ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
+                <div className={`text-4xl font-extrabold whitespace-nowrap ${isHighlight ? 'text-white' : 'text-brand-navy'}`}>
                   ₩{(tier.annualKRW ?? 0).toLocaleString()}
                   <span className={`text-base font-normal ml-1 ${isHighlight ? 'text-white/60' : 'text-muted-foreground'}`}>
                     /년
@@ -89,28 +89,46 @@ export default function PricingCard({ tier }: PricingCardProps) {
         {!isFree && (
           <div className={`mb-5 rounded-xl p-3 ${isHighlight ? 'bg-white/10' : 'bg-muted'}`}>
             <p className={`text-xs font-semibold mb-2 ${isHighlight ? 'text-white/70' : 'text-muted-foreground'}`}>
-              {tier.toolCount === 1 ? '대표 도구 예시' : `포함 도구 (${tier.includedTools.length}/5)`}
+              {tier.toolCount === 1
+                ? '기본 3개 도구 중 1개 선택'
+                : tier.id === 'team'
+                ? '기본 3개 도구 전체'
+                : `포함 도구 (${tier.includedTools.length}/5)`}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {ALL_TOOL_IDS.map((id) => {
                 const included = tier.includedTools.includes(id)
+                const isPremium = PREMIUM_TOOL_IDS.includes(id)
                 const tool = TOOLS[id]
+                const isBusinessOnly = isPremium && tier.id !== 'business' && tier.id !== 'enterprise'
                 return (
                   <span
                     key={id}
                     className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap ${
                       included
                         ? `${tool.color} text-white`
+                        : isBusinessOnly
+                        ? isHighlight
+                          ? 'bg-white/5 text-white/20 line-through'
+                          : 'bg-muted text-muted-foreground/40 line-through'
                         : isHighlight
                         ? 'bg-white/10 text-white/30 line-through'
                         : 'bg-border text-muted-foreground/60 line-through'
                     }`}
                   >
                     {tool.name}
+                    {isBusinessOnly && (
+                      <span className="ml-1 text-[10px] opacity-60">★</span>
+                    )}
                   </span>
                 )
               })}
             </div>
+            {(tier.id === 'starter' || tier.id === 'team') && (
+              <p className={`text-[11px] mt-2 ${isHighlight ? 'text-white/50' : 'text-muted-foreground/60'}`}>
+                ★ APQP Manager · Gauge Manager는 Business 전용
+              </p>
+            )}
           </div>
         )}
 

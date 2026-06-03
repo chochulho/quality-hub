@@ -1,19 +1,12 @@
 import Link from "next/link";
 import { BookOpen, ExternalLink } from "lucide-react";
+import { ALL_TOOL_IDS, TOOLS } from "@/lib/auth/grades";
 
 const siteLinks = [
   { href: "/learn", label: "학습 위키" },
   { href: "/blog", label: "블로그" },
   { href: "/tools", label: "도구 소개" },
   { href: "/about", label: "소개" },
-];
-
-const toolLinks = [
-  { href: "https://auditsay.com", label: "AuditSay" },
-  { href: "https://apqpmanager.com", label: "APQP Manager" },
-  { href: "https://gaugemanager.com", label: "Gauge Manager" },
-  { href: "https://nc-manager-chi.vercel.app", label: "NC Manager" },
-  { href: "https://change-manager-self.vercel.app", label: "4M Change Manager" },
 ];
 
 export default function Footer() {
@@ -25,7 +18,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 font-bold text-brand-navy mb-3">
               <BookOpen className="h-5 w-5 text-brand-orange" />
-              <span>QmIntel</span>
+              <span>QMintel</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               품질 실무자가 IATF 16949·품질기술사·실무 도구를
@@ -54,26 +47,29 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3">품질 도구</h3>
             <ul className="space-y-2">
-              {toolLinks.map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                </li>
-              ))}
+              {ALL_TOOL_IDS.map((id) => {
+                const tool = TOOLS[id];
+                const isExternal = tool.href.startsWith("http");
+                return (
+                  <li key={id}>
+                    <a
+                      href={tool.href}
+                      {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {tool.name}
+                      {isExternal && <ExternalLink className="h-3 w-3" />}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
 
         <div className="mt-10 pt-6 border-t border-border flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
-            © 2026 QmIntel. All rights reserved.
+            © 2026 QMintel. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
             문의:{" "}

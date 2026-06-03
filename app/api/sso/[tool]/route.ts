@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { SignJWT } from 'jose'
-import { TOOLS, SUPERADMIN_EMAIL, type ToolId } from '@/lib/auth/grades'
+import { TOOLS, PREMIUM_TOOL_IDS, SUPERADMIN_EMAIL, type ToolId } from '@/lib/auth/grades'
 
 // ── SSO 설정 ────────────────────────────────────────────────────
 
@@ -175,6 +175,8 @@ async function checkToolAccess(
 ): Promise<boolean> {
   if (planId === 'business' || planId === 'enterprise') return true
   if (planId === 'free') return false
+  // APQP Manager·Gauge Manager는 Business 전용
+  if (PREMIUM_TOOL_IDS.includes(toolId)) return false
 
   const { data } = await supabase
     .from('org_selected_tools')

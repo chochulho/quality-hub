@@ -155,7 +155,7 @@ export default function PillHeader() {
               onClick={close}
             >
               <BookOpen className="h-5 w-5 text-brand-orange" />
-              <span className="text-sm md:text-base">QmIntel</span>
+              <span className="text-sm md:text-base">QMintel</span>
             </Link>
 
             {/* 데스크탑 네비게이션 */}

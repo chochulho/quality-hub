@@ -32,7 +32,7 @@ export default async function RegisterPage({ searchParams }: PageProps) {
           className="inline-flex items-center gap-2 text-brand-navy font-bold mb-6"
         >
           <BookOpen className="h-5 w-5 text-brand-orange" />
-          <span>QmIntel</span>
+          <span>QMintel</span>
         </Link>
 
         {/* 외부 도메인 유입 배너 */}
@@ -46,7 +46,7 @@ export default async function RegisterPage({ searchParams }: PageProps) {
               {domainCfg.label} 계정 만들기
             </h1>
             <p className="text-sm text-muted-foreground mt-2">
-              QmIntel 통합 계정으로 가입하면<br />
+              QMintel 통합 계정으로 가입하면<br />
               <span className="font-semibold text-foreground">{domainCfg.label}</span>을 바로 이용할 수 있습니다.
             </p>
           </>

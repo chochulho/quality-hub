@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Q&A",
-  description: "QmIntel 자주 묻는 질문",
+  description: "QMintel 자주 묻는 질문",
 };
 
 const FAQ = [
