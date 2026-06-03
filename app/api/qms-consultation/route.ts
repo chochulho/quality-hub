@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     // 운영자 알림 메일
     await resend.emails.send({
-      from: 'QMS 위자드 <onboarding@resend.dev>',
+      from: 'QMS 위자드 <noreply@qmintel.com>',
       to: 'chulhocho@daum.net',
       subject: `[QMS 구축 상담] ${companyName} — ${contactName}`,
       html: `
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     // 신청자 확인 메일
     await resend.emails.send({
-      from: 'QMS 위자드 <onboarding@resend.dev>',
+      from: 'QMS 위자드 <noreply@qmintel.com>',
       to: email,
       subject: `[QMS 위자드] 상담 신청이 접수되었습니다 — ${companyName}`,
       html: `
