@@ -83,8 +83,8 @@ export default function QmsConsultationPage() {
           </p>
           <div className="rounded-2xl border border-border bg-white p-5 text-sm text-left space-y-1">
             <p className="text-muted-foreground">급한 문의</p>
-            <a href="mailto:chulhocho@daum.net" className="font-semibold text-brand-navy hover:underline">
-              chulhocho@daum.net
+            <a href="mailto:support@qmintel.com" className="font-semibold text-brand-navy hover:underline">
+              support@qmintel.com
             </a>
           </div>
           <Link

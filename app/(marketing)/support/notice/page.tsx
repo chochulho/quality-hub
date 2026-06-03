@@ -3,7 +3,7 @@ import { Bell } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "공지사항",
-  description: "Quality Hub 공지사항 및 업데이트 소식",
+  description: "QmIntel 공지사항 및 업데이트 소식",
 };
 
 const NOTICES = [

@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     // 운영자 알림 메일
     await resend.emails.send({
       from: 'QMS 위자드 <noreply@qmintel.com>',
-      to: 'chulhocho@daum.net',
+      to: 'support@qmintel.com',
       subject: `[QMS 구축 상담] ${companyName} — ${contactName}`,
       html: `
         <h2 style="color:#2B4B8C">QMS 구축 상담 신청</h2>
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         <p style="font-size:15px;color:#444">${contactName}님, 안녕하세요.<br>
         <b>${companyName}</b>의 QMS 구축 상담 신청이 정상적으로 접수되었습니다.</p>
         <p style="font-size:14px;color:#666">영업일 기준 <b>1~2일 내</b>에 담당자가 연락드립니다.<br>
-        급한 문의사항은 <a href="mailto:chulhocho@daum.net">chulhocho@daum.net</a>으로 연락 주세요.</p>
+        급한 문의사항은 <a href="mailto:support@qmintel.com">support@qmintel.com</a>으로 연락 주세요.</p>
         <hr style="border:none;border-top:1px solid #eee;margin:20px 0">
         <p style="font-size:12px;color:#999">본 메일은 자동 발송됩니다.</p>
       `,

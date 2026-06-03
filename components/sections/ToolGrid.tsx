@@ -11,7 +11,7 @@ export default function ToolGrid() {
             실무를 더 빠르게 만드는 도구들
           </h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-            Quality Hub와 함께하는 자매 SaaS 서비스. 지식에서 실무로 자연스럽게 연결됩니다.
+            QmIntel과 함께하는 자매 SaaS 서비스. 지식에서 실무로 자연스럽게 연결됩니다.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -27,7 +27,7 @@ export default async function WorkspaceHeader() {
           <Link href="/" className="flex items-center gap-2 text-white">
             <BookOpen className="h-5 w-5 text-brand-orange" />
             <span className="font-bold text-sm hidden sm:block">
-              {session.orgName ?? "Quality Hub"}
+              {session.orgName ?? "QmIntel"}
             </span>
           </Link>
         </div>

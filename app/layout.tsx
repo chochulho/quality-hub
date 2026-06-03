@@ -13,14 +13,14 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Quality Hub — 품질 실무자를 위한 지식 베이스",
-    template: "%s | Quality Hub",
+    default: "QmIntel — 품질 실무자를 위한 지식 베이스",
+    template: "%s | QmIntel",
   },
   description:
     "IATF 16949·ISO 9001·SPC·MSA부터 품질기술사 시험까지. 정리된 지식과 실무 도구를 함께 제공합니다.",
-  metadataBase: new URL("https://quality-hub.vercel.app"),
+  metadataBase: new URL("https://qmintel.com"),
   openGraph: {
-    siteName: "Quality Hub",
+    siteName: "QmIntel",
     locale: "ko_KR",
     type: "website",
   },

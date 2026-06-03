@@ -83,7 +83,7 @@ export default function MobileNav({ open, onClose, userSession }: MobileNavProps
         <div className="flex items-center justify-between px-6 py-5 border-b border-border">
           <div className="flex items-center gap-2 font-bold text-brand-navy">
             <BookOpen className="h-5 w-5 text-brand-orange" />
-            <span>Quality Hub</span>
+            <span>QmIntel</span>
           </div>
           <button onClick={onClose} className="p-1 text-muted-foreground" aria-label="메뉴 닫기">
             <X className="h-5 w-5" />

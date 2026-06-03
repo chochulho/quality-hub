@@ -26,7 +26,7 @@ export default async function LoginPage({
           className="inline-flex items-center gap-2 text-brand-navy font-bold mb-6"
         >
           <BookOpen className="h-5 w-5 text-brand-orange" />
-          <span>Quality Hub</span>
+          <span>QmIntel</span>
         </Link>
         <p className="text-xs font-medium text-brand-orange mb-2 tracking-wide uppercase">
           회원 로그인
