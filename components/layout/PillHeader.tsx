@@ -17,6 +17,7 @@ type ClientSession = {
   name: string;
   planId: string;
   role: "superadmin" | "owner" | "admin" | "member";
+  pending?: boolean;   // 기업 승인 대기 중
 } | null;
 
 const TOOL_DOT: Record<string, string> = {
@@ -114,9 +115,10 @@ export default function PillHeader() {
       const m = data?.[0];
       if (m) {
         setSession({
-          name:   user.email?.split("@")[0] ?? "사용자",
-          planId: m.plan_id ?? "free",
-          role:   m.member_role ?? "member",
+          name:    user.email?.split("@")[0] ?? "사용자",
+          planId:  m.plan_id ?? "free",
+          role:    m.member_role ?? "member",
+          pending: m.org_status === "pending",
         });
       } else {
         setSession(null);
@@ -354,26 +356,39 @@ export default function PillHeader() {
             <div className="flex items-center gap-2">
               {session ? (
                 <div className="hidden md:flex items-center gap-2">
-                  <GradeBadge planId={session.planId} size="sm" />
-                  {session.role === "superadmin" && (
-                    <Link
-                      href="/admin"
-                      onClick={close}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-brand-orange transition-colors"
-                    >
-                      <Shield className="h-3.5 w-3.5" />
-                      관리자
-                    </Link>
+                  {session.pending ? (
+                    /* 기업 승인 대기 중 */
+                    <>
+                      <span className="text-xs font-medium text-amber-700 bg-amber-100 rounded-full px-3 py-1.5">
+                        승인 대기 중
+                      </span>
+                      <LogoutButton showIcon={false} />
+                    </>
+                  ) : (
+                    /* 정상 로그인 */
+                    <>
+                      <GradeBadge planId={session.planId} size="sm" />
+                      {session.role === "superadmin" && (
+                        <Link
+                          href="/admin"
+                          onClick={close}
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-brand-orange transition-colors"
+                        >
+                          <Shield className="h-3.5 w-3.5" />
+                          관리자
+                        </Link>
+                      )}
+                      <Link
+                        href="/dashboard"
+                        onClick={close}
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold bg-brand-navy text-white rounded-full px-4 py-2 hover:bg-brand-navy-dark transition-all hover:-translate-y-0.5 duration-200"
+                      >
+                        <LayoutDashboard className="h-3.5 w-3.5" />
+                        대시보드
+                      </Link>
+                      <LogoutButton showIcon={false} />
+                    </>
                   )}
-                  <Link
-                    href="/dashboard"
-                    onClick={close}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold bg-brand-navy text-white rounded-full px-4 py-2 hover:bg-brand-navy-dark transition-all hover:-translate-y-0.5 duration-200"
-                  >
-                    <LayoutDashboard className="h-3.5 w-3.5" />
-                    대시보드
-                  </Link>
-                  <LogoutButton showIcon={false} />
                 </div>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
