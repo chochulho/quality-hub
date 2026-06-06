@@ -1,7 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   LayoutDashboard, BookOpen, Calculator, Users, Building2,
-  CreditCard, BookMarked, Shield,
+  CreditCard, BookMarked, Shield, Settings,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import WorkspaceUserMenu from "./WorkspaceUserMenu";
@@ -25,7 +26,18 @@ export default async function WorkspaceHeader() {
         {/* 로고 + 조직명 */}
         <div className="flex items-center gap-3 shrink-0">
           <Link href="/" className="flex items-center gap-2 text-white">
-            <BookOpen className="h-5 w-5 text-brand-orange" />
+            {session.logoUrl ? (
+              <Image
+                src={session.logoUrl}
+                alt={session.orgName ?? "QMintel"}
+                width={80}
+                height={28}
+                className="h-7 w-auto max-w-[80px] object-contain"
+                unoptimized
+              />
+            ) : (
+              <BookOpen className="h-5 w-5 text-brand-orange" />
+            )}
             <span className="font-bold text-sm hidden sm:block">
               {session.orgName ?? "QMintel"}
             </span>
@@ -48,7 +60,10 @@ export default async function WorkspaceHeader() {
 
           {/* owner 전용 */}
           {isOwner && (
-            <NavItem href="/billing" Icon={CreditCard} label="결제" />
+            <>
+              <NavItem href="/billing" Icon={CreditCard} label="결제" />
+              <NavItem href="/settings" Icon={Settings} label="설정" />
+            </>
           )}
 
           {/* superadmin */}

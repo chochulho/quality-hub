@@ -8,6 +8,7 @@ export type UserSession = {
   role: 'superadmin' | 'owner' | 'admin' | 'member'
   orgId: string | null
   orgName: string | null
+  logoUrl: string | null
   planId: string                                      // 'free' | 'starter' | 'team' | 'business' | 'enterprise'
   orgStatus: 'pending' | 'active' | 'suspended'
   orgType: 'individual' | 'corporate'
@@ -39,6 +40,7 @@ export async function getSession(): Promise<UserSession> {
       role: 'superadmin',
       orgId: null,
       orgName: null,
+      logoUrl: null,
       planId: 'enterprise',
       orgStatus: 'active',
       orgType: 'individual',
@@ -58,6 +60,7 @@ export async function getSession(): Promise<UserSession> {
     role: m.member_role as 'owner' | 'admin' | 'member',
     orgId: m.org_id,
     orgName: m.org_name,
+    logoUrl: m.logo_url ?? null,
     planId: m.plan_id ?? 'free',
     orgStatus: m.org_status as 'pending' | 'active' | 'suspended',
     orgType: m.org_type as 'individual' | 'corporate',

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, ArrowUpRight, Settings2 } from 'lucide-react'
 import { getSession } from '@/lib/auth/session'
 import { ALL_TOOL_IDS, TOOLS, isToolUnlocked, type ToolId } from '@/lib/auth/grades'
@@ -52,9 +53,21 @@ export default async function DashboardPage() {
               <span className="ml-1.5 text-muted-foreground">· {session.orgName}</span>
             )}
           </p>
-          <h1 className="text-3xl font-extrabold text-brand-navy tracking-tight">
-            내 도구 대시보드
-          </h1>
+          <div className="flex items-center gap-3">
+            {session.logoUrl && (
+              <Image
+                src={session.logoUrl}
+                alt={session.orgName ?? ''}
+                width={100}
+                height={36}
+                className="h-9 w-auto max-w-[100px] object-contain"
+                unoptimized
+              />
+            )}
+            <h1 className="text-3xl font-extrabold text-brand-navy tracking-tight">
+              내 도구 대시보드
+            </h1>
+          </div>
           <div className="flex items-center gap-3 mt-2">
             <GradeBadge planId={session.planId} />
           </div>
