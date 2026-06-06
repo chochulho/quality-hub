@@ -17,7 +17,9 @@ type ClientSession = {
   name: string;
   planId: string;
   role: "superadmin" | "owner" | "admin" | "member";
-  pending?: boolean;   // 기업 승인 대기 중
+  orgName?: string | null;
+  logoUrl?: string | null;
+  pending?: boolean;
 } | null;
 
 const TOOL_DOT: Record<string, string> = {
@@ -106,7 +108,7 @@ export default function PillHeader() {
       if (!user?.email) { setSession(null); return; }
 
       if (user.email === SUPERADMIN_EMAIL) {
-        setSession({ name: "관리자", planId: "enterprise", role: "superadmin" });
+        setSession({ name: "관리자", planId: "enterprise", role: "superadmin", orgName: null, logoUrl: null });
         return;
       }
 
@@ -118,6 +120,8 @@ export default function PillHeader() {
           name:    user.email?.split("@")[0] ?? "사용자",
           planId:  m.plan_id ?? "free",
           role:    m.member_role ?? "member",
+          orgName: m.org_name ?? null,
+          logoUrl: m.logo_url ?? null,
           pending: m.org_status === "pending",
         });
       } else {
@@ -141,15 +145,43 @@ export default function PillHeader() {
     setActiveDropdown((prev) => (prev === name ? null : name));
   const close = () => setActiveDropdown(null);
 
+  const hasCompanyBar = !!session && !session.pending && !!(session.logoUrl || session.orgName)
+
   return (
     <>
       <header className="fixed top-4 md:top-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
         <div ref={navRef} className="pointer-events-auto w-full max-w-5xl relative">
           <nav
-            className={`flex items-center justify-between px-5 py-3 bg-white/90 backdrop-blur-md border border-border rounded-full transition-shadow duration-200 ${
-              scrolled ? "shadow-md" : "shadow-sm"
-            }`}
+            className={`flex flex-col px-5 bg-white/90 backdrop-blur-md border border-border transition-shadow duration-200 ${
+              hasCompanyBar ? "rounded-2xl" : "rounded-full"
+            } ${scrolled ? "shadow-md" : "shadow-sm"}`}
           >
+            {/* 회사 컨텍스트 바 */}
+            {hasCompanyBar && (
+              <div className="flex items-center justify-between pt-2.5 pb-2 border-b border-border/60">
+                <div className="flex items-center gap-2 min-w-0">
+                  {session!.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={session!.logoUrl}
+                      alt={session!.orgName ?? ""}
+                      className="h-5 w-auto max-w-[72px] object-contain shrink-0"
+                    />
+                  ) : null}
+                  <span className="text-xs font-semibold text-foreground truncate max-w-[160px]">
+                    {session!.orgName}
+                  </span>
+                </div>
+                <span className="text-[10px] text-muted-foreground/80 shrink-0 pl-4">
+                  Powered by{" "}
+                  <span className="font-semibold text-brand-navy">QMintel</span>
+                </span>
+              </div>
+            )}
+
+            {/* 메인 네비게이션 행 */}
+            <div className={`flex items-center justify-between ${hasCompanyBar ? "py-2.5" : "py-3"}`}>
+
             {/* 로고 */}
             <Link
               href="/"
@@ -418,6 +450,8 @@ export default function PillHeader() {
               >
                 <Menu className="h-5 w-5" />
               </button>
+            </div>
+            {/* /메인 네비게이션 행 */}
             </div>
           </nav>
         </div>
