@@ -101,6 +101,26 @@ export async function updateMemberRole(
   return {}
 }
 
+/** 멤버 사업장 배정 업데이트 */
+export async function updateMemberSites(
+  memberId: string,
+  siteIds: string[]
+): Promise<ActionResult> {
+  const auth = await requireAdminSession()
+  if (auth.error || !auth.session) return { error: auth.error }
+
+  const supabase = createAdminClient()
+  const { error } = await supabase.rpc('set_member_sites', {
+    p_member_id: memberId,
+    p_site_ids: siteIds,
+  })
+
+  if (error) return { error: '사업장 배정 실패: ' + error.message }
+
+  revalidatePath('/members')
+  return {}
+}
+
 /** 멤버 제거 (자기 자신 제거 불가) */
 export async function removeMember(memberId: string): Promise<ActionResult> {
   const auth = await requireAdminSession()
