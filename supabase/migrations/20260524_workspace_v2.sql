@@ -235,7 +235,7 @@ begin
   return query
     select
       o.id, o.name, o.plan_id, o.org_type, o.status, o.created_at,
-      u.email as owner_email
+      u.email::text as owner_email
     from organizations o
     left join org_members m on m.org_id = o.id and m.role = 'owner'
     left join auth.users u on u.id = m.user_id
