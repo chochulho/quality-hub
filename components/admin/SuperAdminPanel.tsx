@@ -22,6 +22,7 @@ export default function SuperAdminPanel() {
   const [tab, setTab] = useState<'pending' | 'all'>('pending')
   const [orgs, setOrgs] = useState<OrgRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const pending = orgs.filter((o) => o.status === 'pending')
@@ -29,9 +30,11 @@ export default function SuperAdminPanel() {
 
   const fetchOrgs = useCallback(async () => {
     setLoading(true)
+    setFetchError(null)
     const supabase = createClient()
     const { data, error } = await supabase.rpc('get_all_organizations')
-    if (!error && data) setOrgs(data as OrgRow[])
+    if (error) setFetchError(error.message)
+    else if (data) setOrgs(data as OrgRow[])
     setLoading(false)
   }, [])
 
@@ -106,6 +109,14 @@ export default function SuperAdminPanel() {
           </button>
         ))}
       </div>
+
+      {/* 에러 */}
+      {fetchError && (
+        <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <p className="font-semibold mb-0.5">데이터 로드 실패</p>
+          <p className="font-mono text-xs">{fetchError}</p>
+        </div>
+      )}
 
       {/* 로딩 */}
       {loading && (
