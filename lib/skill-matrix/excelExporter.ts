@@ -50,7 +50,7 @@ export async function exportSkillMatrix(
   title: string = "다기능도"
 ) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Quality Hub";
+  wb.creator = "QMintel";
   const ws = wb.addWorksheet("다기능도", {
     views: [{ state: "frozen", xSplit: 2, ySplit: 3 }],
   });

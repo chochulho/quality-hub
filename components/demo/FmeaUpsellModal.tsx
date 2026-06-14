@@ -72,7 +72,7 @@ export default function FmeaUpsellModal({ onClose }: Props) {
             href="/register"
             className="flex items-center justify-center gap-2 w-full border border-border text-foreground rounded-full px-6 py-3.5 font-semibold hover:border-brand-navy hover:-translate-y-0.5 transition-all duration-200 text-sm"
           >
-            quality-hub 무료 가입
+            QMintel 무료 가입
           </Link>
         </div>
 

@@ -14,34 +14,34 @@ insert into plans (
   'free', 'Free', 0, 0,
   '{"auditsay":"readonly","calculators":true,"wiki":true,"blog":true,"learn":true,"fmea_demo":true}'::jsonb,
   0, 3, 1,
-  '{"sso":false,"audit_log":false}'::jsonb,
+  '{"sso":false,"audit_log":false,"fmea_chatbot_monthly_limit":0,"fmea_demo_daily_limit":1,"ai_translation":[],"excel_pdf_parsing":false}'::jsonb,
   true, 1
 ),
 
--- Starter: 도구 1개 선택
+-- Starter: 도구 1개 선택 (5개 중), FMEA 챗봇 월 3건, AI 영문 번역
 (
   'starter', 'Starter', 49000, 490000,
   '{"selectable":true,"calculators":true}'::jsonb,
   1, 10, 1,
-  '{"sso":false,"audit_log":false}'::jsonb,
+  '{"sso":false,"audit_log":false,"fmea_chatbot_monthly_limit":3,"ai_translation":["en"],"excel_pdf_parsing":false}'::jsonb,
   true, 2
 ),
 
--- Team: 도구 3개 선택
+-- Team: 도구 3개 선택 (5개 중), FMEA 챗봇 월 10건, AI 영문+중국어
 (
   'team', 'Team', 149000, 1490000,
   '{"selectable":true,"calculators":true}'::jsonb,
   3, 30, 2,
-  '{"sso":false,"audit_log":false}'::jsonb,
+  '{"sso":false,"audit_log":false,"fmea_chatbot_monthly_limit":10,"ai_translation":["en","zh"],"excel_pdf_parsing":false}'::jsonb,
   true, 3
 ),
 
--- Business: 전체 5개 도구
+-- Business: 전체 5개 도구, FMEA 챗봇 무제한(-1), AI 3개 언어, Excel/PDF 파싱
 (
   'business', 'Business', 390000, 3900000,
   '{"auditsay":true,"apqp":true,"gauge":true,"nc":true,"4m":true,"calculators":true}'::jsonb,
   5, 80, 3,
-  '{"sso":"addon","audit_log":false}'::jsonb,
+  '{"sso":"addon","audit_log":false,"fmea_chatbot_monthly_limit":-1,"ai_translation":["en","zh","vi"],"excel_pdf_parsing":true}'::jsonb,
   true, 4
 ),
 
@@ -50,7 +50,7 @@ insert into plans (
   'enterprise', 'Enterprise', null, null,
   '{"auditsay":true,"apqp":true,"gauge":true,"nc":true,"4m":true,"calculators":true}'::jsonb,
   5, -1, -1,
-  '{"sso":true,"audit_log":true,"dedicated_support":true}'::jsonb,
+  '{"sso":true,"audit_log":true,"dedicated_support":true,"fmea_chatbot_monthly_limit":-1,"ai_translation":["en","zh","vi"],"excel_pdf_parsing":true}'::jsonb,
   false, 5
 )
 

@@ -41,7 +41,7 @@ function dataRow(
 
 export async function exportVariableToExcel(result: VariableResult): Promise<void> {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Quality Hub";
+  wb.creator = "QMintel";
 
   // ── Upper chart sheet ───────────────────────────────────
   const ws1 = wb.addWorksheet(result.upperLabel);
@@ -95,7 +95,7 @@ export async function exportVariableToExcel(result: VariableResult): Promise<voi
 
 export async function exportAttributeToExcel(result: AttributeResult, chartTitle: string): Promise<void> {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Quality Hub";
+  wb.creator = "QMintel";
 
   const ws = wb.addWorksheet(chartTitle);
   ws.columns = [

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Check, ArrowRight } from 'lucide-react'
-import { ALL_TOOL_IDS, TOOLS, PREMIUM_TOOL_IDS, type ToolId } from '@/lib/auth/grades'
+import { ALL_TOOL_IDS, TOOLS, type ToolId } from '@/lib/auth/grades'
 
 export interface PlanTier {
   id: string
@@ -11,6 +11,7 @@ export interface PlanTier {
   toolCount: number
   includedTools: ToolId[]
   highlight: boolean
+  badge?: string
   features: string[]
   ctaLabel: string
 }
@@ -22,6 +23,20 @@ interface PricingCardProps {
 export default function PricingCard({ tier }: PricingCardProps) {
   const isHighlight = tier.highlight
   const isFree = tier.id === 'free'
+  const isBusiness = tier.id === 'business'
+
+  const toolSectionLabel =
+    tier.toolCount === 1
+      ? '5개 도구 중 1개 선택'
+      : tier.toolCount === 3
+      ? '5개 도구 중 3개 선택'
+      : `포함 도구 (${tier.includedTools.length}/5)`
+
+  const toolSelectionHint =
+    tier.id === 'starter' ? '가입 시 5개 도구 중 1개를 선택합니다. 언제든지 변경 가능.'
+    : tier.id === 'team'    ? '가입 시 5개 도구 중 3개를 선택합니다. 언제든지 변경 가능.'
+    : tier.id === 'business' ? '5개 도구 모두 자동 활성화.'
+    : null
 
   return (
     <div
@@ -31,10 +46,19 @@ export default function PricingCard({ tier }: PricingCardProps) {
           : 'bg-white border-border'
       }`}
     >
+      {/* Team 추천 배지 */}
       {isHighlight && (
         <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
           <span className="bg-brand-orange text-white text-xs font-bold px-4 py-1.5 rounded-full shadow">
             추천
+          </span>
+        </div>
+      )}
+      {/* Business FMEA 챗봇 무제한 배지 */}
+      {tier.badge && !isHighlight && (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+          <span className="bg-brand-navy text-white text-xs font-bold px-4 py-1.5 rounded-full shadow whitespace-nowrap">
+            {tier.badge}
           </span>
         </div>
       )}
@@ -66,6 +90,9 @@ export default function PricingCard({ tier }: PricingCardProps) {
                     /월
                   </span>
                 </div>
+                <p className={`text-xs mt-0.5 ${isHighlight ? 'text-white/50' : 'text-muted-foreground'}`}>
+                  VAT 별도
+                </p>
               </div>
               {/* 연간 가격 (초기 hidden) */}
               <div data-annual="" style={{ display: 'none' }}>
@@ -80,6 +107,9 @@ export default function PricingCard({ tier }: PricingCardProps) {
                     월 ₩{Math.round(tier.annualKRW / 12).toLocaleString()} 효과 · 2개월 무료
                   </p>
                 )}
+                <p className={`text-xs mt-0.5 ${isHighlight ? 'text-white/50' : 'text-muted-foreground'}`}>
+                  VAT 별도
+                </p>
               </div>
             </div>
           )}
@@ -89,44 +119,24 @@ export default function PricingCard({ tier }: PricingCardProps) {
         {!isFree && (
           <div className={`mb-5 rounded-xl p-3 ${isHighlight ? 'bg-white/10' : 'bg-muted'}`}>
             <p className={`text-xs font-semibold mb-2 ${isHighlight ? 'text-white/70' : 'text-muted-foreground'}`}>
-              {tier.toolCount === 1
-                ? '기본 3개 도구 중 1개 선택'
-                : tier.id === 'team'
-                ? '기본 3개 도구 전체'
-                : `포함 도구 (${tier.includedTools.length}/5)`}
+              {toolSectionLabel}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {ALL_TOOL_IDS.map((id) => {
-                const included = tier.includedTools.includes(id)
-                const isPremium = PREMIUM_TOOL_IDS.includes(id)
                 const tool = TOOLS[id]
-                const isBusinessOnly = isPremium && tier.id !== 'business' && tier.id !== 'enterprise'
                 return (
                   <span
                     key={id}
-                    className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap ${
-                      included
-                        ? `${tool.color} text-white`
-                        : isBusinessOnly
-                        ? isHighlight
-                          ? 'bg-white/5 text-white/20 line-through'
-                          : 'bg-muted text-muted-foreground/40 line-through'
-                        : isHighlight
-                        ? 'bg-white/10 text-white/30 line-through'
-                        : 'bg-border text-muted-foreground/60 line-through'
-                    }`}
+                    className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap ${tool.color} text-white`}
                   >
                     {tool.name}
-                    {isBusinessOnly && (
-                      <span className="ml-1 text-[10px] opacity-60">★</span>
-                    )}
                   </span>
                 )
               })}
             </div>
-            {(tier.id === 'starter' || tier.id === 'team') && (
+            {toolSelectionHint && (
               <p className={`text-[11px] mt-2 ${isHighlight ? 'text-white/50' : 'text-muted-foreground/60'}`}>
-                ★ APQP Manager · Gauge Manager는 Business 전용
+                {toolSelectionHint}
               </p>
             )}
           </div>
@@ -136,7 +146,7 @@ export default function PricingCard({ tier }: PricingCardProps) {
         <ul className="space-y-2.5">
           {tier.features.map((f) => (
             <li key={f} className="flex items-start gap-2.5 text-sm">
-              <Check className="h-4 w-4 shrink-0 mt-0.5 text-brand-orange" />
+              <Check className={`h-4 w-4 shrink-0 mt-0.5 ${isBusiness ? 'text-brand-orange' : 'text-brand-orange'}`} />
               <span className={isHighlight ? 'text-white/80' : 'text-foreground'}>{f}</span>
             </li>
           ))}

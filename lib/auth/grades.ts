@@ -121,16 +121,17 @@ export const TOOLS: Record<ToolId, ToolDef> = {
   },
 }
 
-// 기본 3개 (Starter·Team 선택 가능) → 프리미엄 2개 (Business 전용)
+// 모든 플랜에서 선택 가능한 5개 도구 (표시 순서)
 export const ALL_TOOL_IDS: ToolId[] = [
   'auditsay',
-  'nc-manager',
-  '4m-change-manager',
   'apqp-manager',
+  'nc-manager',
   'gauge-manager',
+  '4m-change-manager',
 ]
 
-export const PREMIUM_TOOL_IDS: ToolId[] = ['apqp-manager', 'gauge-manager']
+// v2: 모든 도구 선택 가능 (Business 전용 폐지) — SSO 라우트 fallthrough용으로 빈 배열 유지
+export const PREMIUM_TOOL_IDS: ToolId[] = []
 
 // ── Plan → Tool access ────────────────────────────────────────
 // 'all'     = business/enterprise: 모든 도구 포함

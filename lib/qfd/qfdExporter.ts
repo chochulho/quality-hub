@@ -328,7 +328,7 @@ async function buildPhaseSheet(wb: ExcelJS.Workbook, phase: QFDPhase, sheetName:
 
 export async function exportQFD(phases: QFDPhase[], phaseLabels: string[]) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Quality Hub";
+  wb.creator = "QMintel";
   wb.created = new Date();
 
   for (let idx = 0; idx < phases.length; idx++) {

@@ -19,8 +19,8 @@ async function getPublicPlans(): Promise<PlanTier[]> {
 
     // DB 데이터 → PlanTier 변환
     return data.map((row) => {
-      const entitlements = row.tool_entitlements as Record<string, unknown>
-      const includedTools = getIncludedTools(row.id, entitlements)
+      const features = row.features as Record<string, unknown>
+      const includedTools = getIncludedTools(row.id)
 
       return {
         id: row.id,
@@ -31,7 +31,8 @@ async function getPublicPlans(): Promise<PlanTier[]> {
         toolCount:  row.selectable_tool_count > 0 ? row.selectable_tool_count : includedTools.length,
         includedTools,
         highlight: row.id === 'team',
-        features: getPlanFeatures(row.id, row.max_members, row.max_sites, row.features),
+        badge: row.id === 'business' ? 'FMEA 챗봇 무제한' : undefined,
+        features: getPlanFeatures(row.id, row.max_members, row.max_sites, features),
         ctaLabel: row.id === 'free' ? '무료로 시작' : `${row.name} 시작하기`,
       } satisfies PlanTier
     })
@@ -41,15 +42,10 @@ async function getPublicPlans(): Promise<PlanTier[]> {
   }
 }
 
-function getIncludedTools(planId: string, entitlements: Record<string, unknown>): ToolId[] {
+function getIncludedTools(planId: string): ToolId[] {
   if (planId === 'free') return []
-  if (planId === 'business' || planId === 'enterprise') {
-    return ['auditsay', 'nc-manager', '4m-change-manager', 'apqp-manager', 'gauge-manager']
-  }
-  // starter/team: 기본 3개 중 선택 (APQP·Gauge는 Business 전용)
-  if (planId === 'starter')  return ['auditsay']
-  if (planId === 'team')     return ['auditsay', 'nc-manager', '4m-change-manager']
-  return []
+  // 모든 유료 플랜: 5개 도구 전체 표시 (Starter·Team은 선택 가능, Business는 전체 포함)
+  return ['auditsay', 'apqp-manager', 'nc-manager', 'gauge-manager', '4m-change-manager']
 }
 
 function getPlanLabel(planId: string): string {
@@ -71,31 +67,42 @@ function getPlanFeatures(
 ): string[] {
   const base: Record<string, string[]> = {
     free: [
-      '품질 학습 위키 전체 무료',
+      '품질 학습 위키 전체',
       'SPC · QC7 계산 도구',
-      'FMEA 체험 데모',
-      '회원 가입 없이 이용 가능',
+      'FMEA 체험 데모 (1세션/일)',
+      '회원가입 없이 이용 가능',
+      `팀원 최대 ${maxMembers}명`,
     ],
     starter: [
       'SaaS 도구 1개 선택',
+      'FMEA AI 챗봇 월 3건',
+      'AI 영문 번역',
       'SPC · QC7 계산 도구',
-      `팀원 최대 ${maxMembers}명`,
+      `팀원 최대 ${maxMembers}명 · 사업장 ${maxSites}개`,
       '이메일 지원',
     ],
     team: [
       'SaaS 도구 3개 선택',
+      'FMEA AI 챗봇 월 10건',
+      'AI 영문 + 중국어 번역',
       'SPC · QC7 계산 도구',
       `팀원 최대 ${maxMembers}명 · 사업장 ${maxSites}개`,
-      '이메일·채팅 지원',
+      '이메일 · 채팅 지원',
     ],
     business: [
       '5개 SaaS 도구 전체 포함',
+      'FMEA AI 챗봇 무제한',
+      'AI 다국어 번역 (영어·중국어·베트남어)',
+      'Excel/PDF FMEA 자동 파싱',
       `팀원 최대 ${maxMembers}명 · 사업장 ${maxSites}개`,
       features?.sso === 'addon' ? 'SSO 자동 로그인 (애드온)' : 'SSO 자동 로그인',
-      '전담 지원',
+      '이메일 · 채팅 지원',
     ],
     enterprise: [
       '5개 SaaS 도구 전체',
+      'FMEA AI 챗봇 무제한',
+      'AI 다국어 번역 무제한',
+      'Excel/PDF FMEA 자동 파싱',
       '무제한 인원 · 사업장',
       'SSO + 감사 로그',
       '전담 매니저 지원',
@@ -105,43 +112,49 @@ function getPlanFeatures(
 }
 
 // 정적 폴백 (DB 연결 전 또는 실패 시)
+const ALL_5_TOOLS: ToolId[] = ['auditsay', 'apqp-manager', 'nc-manager', 'gauge-manager', '4m-change-manager']
+
 const STATIC_FALLBACK: PlanTier[] = [
   {
     id: 'free', name: '무료', label: '학습 + 계산 도구',
     monthlyKRW: null, annualKRW: null, toolCount: 0, includedTools: [],
     highlight: false,
-    features: ['품질 학습 위키 전체 무료', 'SPC · QC7 계산 도구', 'FMEA 체험 데모', '회원 가입 없이 이용 가능'],
+    features: ['품질 학습 위키 전체', 'SPC · QC7 계산 도구', 'FMEA 체험 데모 (1세션/일)', '회원가입 없이 이용 가능', '팀원 최대 3명'],
     ctaLabel: '무료로 시작',
   },
   {
-    id: 'starter', name: 'Starter', label: '기본 도구 1개 선택',
-    monthlyKRW: 24500, annualKRW: 245000, toolCount: 1, includedTools: ['auditsay'],
+    id: 'starter', name: 'Starter', label: '도구 1개 선택',
+    monthlyKRW: 49000, annualKRW: 490000, toolCount: 1, includedTools: ALL_5_TOOLS,
     highlight: false,
-    features: ['기본 3개 도구 중 1개 선택', 'SPC · QC7 계산 도구', '팀원 최대 10명', '이메일 지원'],
+    features: ['SaaS 도구 1개 선택', 'FMEA AI 챗봇 월 3건', 'AI 영문 번역', 'SPC · QC7 계산 도구', '팀원 최대 10명 · 사업장 1개', '이메일 지원'],
     ctaLabel: 'Starter 시작하기',
   },
   {
-    id: 'team', name: 'Team', label: '기본 도구 3개 전체',
-    monthlyKRW: 74500, annualKRW: 745000, toolCount: 3, includedTools: ['auditsay', 'nc-manager', '4m-change-manager'],
+    id: 'team', name: 'Team', label: '도구 3개 선택',
+    monthlyKRW: 149000, annualKRW: 1490000, toolCount: 3, includedTools: ALL_5_TOOLS,
     highlight: true,
-    features: ['기본 3개 도구 전체 포함', 'SPC · QC7 계산 도구', '팀원 최대 30명 · 사업장 2개', '이메일·채팅 지원'],
+    features: ['SaaS 도구 3개 선택', 'FMEA AI 챗봇 월 10건', 'AI 영문 + 중국어 번역', 'SPC · QC7 계산 도구', '팀원 최대 30명 · 사업장 2개', '이메일 · 채팅 지원'],
     ctaLabel: 'Team 시작하기',
   },
   {
     id: 'business', name: 'Business', label: '5개 도구 전체',
-    monthlyKRW: 195000, annualKRW: 1950000, toolCount: 5,
-    includedTools: ['auditsay', 'nc-manager', '4m-change-manager', 'apqp-manager', 'gauge-manager'],
+    monthlyKRW: 390000, annualKRW: 3900000, toolCount: 5, includedTools: ALL_5_TOOLS,
     highlight: false,
-    features: ['5개 SaaS 도구 전체 포함', 'APQP Manager · Gauge Manager 포함', '팀원 최대 80명 · 사업장 3개', 'SSO 자동 로그인 (애드온)', '전담 지원'],
+    badge: 'FMEA 챗봇 무제한',
+    features: ['5개 SaaS 도구 전체 포함', 'FMEA AI 챗봇 무제한', 'AI 다국어 번역 (영어·중국어·베트남어)', 'Excel/PDF FMEA 자동 파싱', '팀원 최대 80명 · 사업장 3개', 'SSO 자동 로그인 (애드온)', '이메일 · 채팅 지원'],
     ctaLabel: 'Business 시작하기',
   },
 ]
 
 // ── 기능 비교표 ───────────────────────────────────────────────
 type PlanId = 'free' | 'starter' | 'team' | 'business'
-type CellValue = true | false | string  // true=✓, false=—, string=커스텀 텍스트
+type CellValue = true | false | string
 
-const FEATURE_ROWS: Array<{ label: string; cells: Record<PlanId, CellValue> }> = [
+const FEATURE_ROWS: Array<{
+  label: string
+  highlight?: boolean   // Business 열 강조 (오렌지 볼드)
+  cells: Record<PlanId, CellValue>
+}> = [
   {
     label: '품질 학습 위키',
     cells: { free: true, starter: true, team: true, business: true },
@@ -152,11 +165,26 @@ const FEATURE_ROWS: Array<{ label: string; cells: Record<PlanId, CellValue> }> =
   },
   {
     label: 'FMEA 체험 데모',
-    cells: { free: true, starter: true, team: true, business: true },
+    cells: { free: '1세션/일', starter: true, team: true, business: true },
   },
   {
     label: 'SaaS 도구 선택',
     cells: { free: false, starter: '1개', team: '3개', business: '전체 5개' },
+  },
+  {
+    label: 'FMEA AI 챗봇',
+    highlight: true,
+    cells: { free: '데모만', starter: '월 3건', team: '월 10건', business: '무제한' },
+  },
+  {
+    label: 'AI 다국어 번역',
+    highlight: true,
+    cells: { free: false, starter: '영어', team: '영어·중국어', business: '영어·중국어·베트남어' },
+  },
+  {
+    label: 'Excel/PDF 자동 파싱',
+    highlight: true,
+    cells: { free: false, starter: false, team: false, business: true },
   },
   {
     label: '팀원 수',
@@ -187,7 +215,7 @@ const FAQ = [
   },
   {
     q: 'Starter · Team 플랜에서 어떤 도구를 선택할 수 있나요?',
-    a: 'AuditSay · NC Manager · APQP Manager · Gauge Manager · 4M Change Manager 5가지 중에서 플랜에 맞는 수만큼 선택할 수 있습니다. 대시보드에서 언제든지 변경 가능합니다.',
+    a: 'AuditSay · APQP Manager · NC Manager · Gauge Manager · 4M Change Manager 5가지 중에서 플랜에 맞는 수만큼 선택할 수 있습니다. 대시보드에서 언제든지 변경 가능합니다.',
   },
   {
     q: 'Enterprise 플랜은 어떻게 신청하나요?',
@@ -196,6 +224,22 @@ const FAQ = [
   {
     q: '무료 체험판이 있나요?',
     a: '회원가입 없이 품질 학습 위키와 SPC·QC7 계산 도구를 무료로 이용할 수 있습니다. 자매 SaaS 도구는 구독 후 이용 가능합니다.',
+  },
+  {
+    q: 'FMEA AI 챗봇 사용량 한도는 어떻게 계산되나요?',
+    a: 'Starter는 월 3건, Team은 월 10건, Business는 무제한입니다. 1건은 하나의 FMEA 항목 완성 기준이며, 매월 1일 초기화됩니다. 한도 초과 시 다음 달까지 대기하거나 Business로 업그레이드하여 즉시 무제한 사용이 가능합니다.',
+  },
+  {
+    q: 'AI 다국어 번역은 어떻게 작동하나요?',
+    a: 'Starter는 한국어→영어, Team은 영어·중국어 추가, Business는 베트남어까지 지원합니다. 한국 자동차 부품사가 글로벌 OEM에 보내는 고객 통보 문서, 8D 보고서, FMEA 문서 등을 AI가 자동 번역합니다.',
+  },
+  {
+    q: '부가세는 별도인가요?',
+    a: '표시 가격은 모두 VAT 별도입니다. 결제 시 부가세(10%)가 추가됩니다. 세금계산서 발행이 필요한 경우 결제 시 사업자 정보를 입력해 주세요.',
+  },
+  {
+    q: '환불 정책은 어떻게 되나요?',
+    a: '가입 후 7일 이내 전액 환불 가능합니다. 7일 이후에는 사용 기간에 비례한 환불이 가능하며, 자세한 내용은 이용약관을 참고해 주세요.',
   },
 ]
 
@@ -267,17 +311,22 @@ export default async function PricingPage() {
             <tbody>
               {FEATURE_ROWS.map((row, i) => (
                 <tr key={i} className={i % 2 === 0 ? 'bg-muted/30' : ''}>
-                  <td className="py-3 pr-4 text-foreground">{row.label}</td>
+                  <td className={`py-3 pr-4 ${row.highlight ? 'font-semibold text-foreground' : 'text-foreground'}`}>
+                    {row.label}
+                  </td>
                   {planIds.map((id) => {
                     const cell = row.cells[id as PlanId] ?? false
+                    const isBizHighlight = row.highlight && id === 'business'
                     return (
                       <td key={id} className="py-3 px-3 text-center">
                         {cell === true ? (
-                          <Check className="h-4 w-4 text-brand-orange mx-auto" />
+                          <Check className={`h-4 w-4 mx-auto ${isBizHighlight ? 'text-brand-orange' : 'text-brand-orange'}`} />
                         ) : cell === false ? (
                           <span className="text-muted-foreground/40 text-lg leading-none">—</span>
                         ) : (
-                          <span className="text-sm font-medium text-foreground">{cell}</span>
+                          <span className={`text-sm font-medium ${isBizHighlight ? 'text-brand-orange font-bold' : 'text-foreground'}`}>
+                            {cell}
+                          </span>
                         )}
                       </td>
                     )
@@ -308,12 +357,19 @@ export default async function PricingPage() {
       </div>
 
       {/* 왜 이 가격인가? */}
-      <div className="text-center mb-10">
+      <div className="text-center mb-6">
         <p className="text-sm text-muted-foreground">
           직접 QMS를 구축하면 얼마나 드는지 비교해 보셨나요?{' '}
           <Link href="/compare" className="text-brand-orange font-medium hover:underline">
-            자체 구축 vs quality‑hub 비용 비교 →
+            자체 구축 vs QMintel 비용 비교 →
           </Link>
+        </p>
+      </div>
+
+      {/* VAT 별도 안내 */}
+      <div className="text-center mb-10">
+        <p className="text-xs text-muted-foreground/70">
+          모든 가격은 VAT 별도입니다. 부가세는 결제 시 자동 계산됩니다.
         </p>
       </div>
 

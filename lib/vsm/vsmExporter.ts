@@ -34,7 +34,7 @@ async function downloadWorkbook(wb: ExcelJS.Workbook, filename: string) {
 export async function exportVSM(state: VSMState): Promise<void> {
   const metrics = calcVSMMetrics(state);
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Quality Hub VSM";
+  wb.creator = "QMintel VSM";
 
   // ── Sheet 1: 공정 데이터 ────────────────────────────────────────────────────
   const ws1 = wb.addWorksheet("공정 데이터");
