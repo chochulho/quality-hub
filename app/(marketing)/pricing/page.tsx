@@ -138,7 +138,7 @@ const STATIC_FALLBACK: PlanTier[] = [
   },
   {
     id: 'business', name: 'Business', label: '5개 도구 전체',
-    monthlyKRW: 390000, annualKRW: 3900000, toolCount: 5, includedTools: ALL_5_TOOLS,
+    monthlyKRW: 290000, annualKRW: 2900000, toolCount: 5, includedTools: ALL_5_TOOLS,
     highlight: false,
     badge: 'FMEA 챗봇 무제한',
     features: ['5개 SaaS 도구 전체 포함', 'FMEA AI 챗봇 무제한', 'AI 다국어 번역 (영어·중국어·베트남어)', 'Excel/PDF FMEA 자동 파싱', '팀원 최대 80명 · 사업장 3개', 'SSO 자동 로그인 (애드온)', '이메일 · 채팅 지원'],

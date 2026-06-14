@@ -11,7 +11,7 @@ export const metadata = { title: '업그레이드' }
 const UPGRADE_PATH = [
   { id: 'starter', name: 'Starter', monthlyKRW: 49000,  tools: 1 },
   { id: 'team',    name: 'Team',    monthlyKRW: 149000, tools: 3 },
-  { id: 'business',name: 'Business',monthlyKRW: 390000, tools: 5 },
+  { id: 'business',name: 'Business',monthlyKRW: 290000, tools: 5 },
 ]
 
 export default async function UpgradePage({

@@ -38,7 +38,7 @@ insert into plans (
 
 -- Business: 전체 5개 도구, FMEA 챗봇 무제한(-1), AI 3개 언어, Excel/PDF 파싱
 (
-  'business', 'Business', 390000, 3900000,
+  'business', 'Business', 290000, 2900000,
   '{"auditsay":true,"apqp":true,"gauge":true,"nc":true,"4m":true,"calculators":true}'::jsonb,
   5, 80, 3,
   '{"sso":"addon","audit_log":false,"fmea_chatbot_monthly_limit":-1,"ai_translation":["en","zh","vi"],"excel_pdf_parsing":true}'::jsonb,
