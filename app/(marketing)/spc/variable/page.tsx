@@ -4,7 +4,7 @@ import { ArrowLeft, BookOpen } from "lucide-react";
 import VariableControlChart from "@/components/control-chart/VariableControlChart";
 
 export const metadata: Metadata = {
-  title: "계량치 관리도 — X̄-R / X̄-S / I-MR | Quality Hub",
+  title: "계량치 관리도 — X̄-R / X̄-S / I-MR | QMintel",
   description: "X̄-R, X̄-S, I-MR 관리도를 직접 그려보세요. 데이터를 붙여넣으면 UCL/CL/LCL을 자동 계산하고 Excel로 내보낼 수 있습니다.",
 };
 

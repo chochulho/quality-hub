@@ -46,7 +46,7 @@ const FAQ = [
     items: [
       {
         q: "모바일에서도 사용할 수 있나요?",
-        a: "Quality Hub 사이트와 내장 도구는 모바일에서 이용 가능합니다. 각 자매 SaaS(AuditSay, Gauge Manager 등)도 모바일 최적화가 되어 있습니다.",
+        a: "QMintel 사이트와 내장 도구는 모바일에서 이용 가능합니다. 각 자매 SaaS(AuditSay, Gauge Manager 등)도 모바일 최적화가 되어 있습니다.",
       },
       {
         q: "데이터는 어떻게 보호되나요?",

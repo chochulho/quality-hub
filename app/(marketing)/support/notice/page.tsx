@@ -20,10 +20,10 @@ const NOTICES = [
     id: 2,
     badge: "안내",
     badgeColor: "bg-muted text-muted-foreground",
-    title: "Quality Hub 베타 서비스 시작",
+    title: "QMintel 베타 서비스 시작",
     date: "2026-05-20",
     content:
-      "Quality Hub가 베타 서비스를 시작합니다. 품질 학습 위키, SPC·QC7·QFD·VSM·Kanban 내장 도구를 무료로 제공합니다. 피드백은 서비스 요청으로 보내주세요.",
+      "QMintel이 베타 서비스를 시작합니다. 품질 학습 위키, SPC·QC7·QFD·VSM·Kanban 내장 도구를 무료로 제공합니다. 피드백은 서비스 요청으로 보내주세요.",
   },
 ];
 

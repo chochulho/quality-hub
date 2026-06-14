@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { QFDViewer } from "@/components/qfd/QFDViewer";
 
 export const metadata: Metadata = {
-  title: "QFD 매트릭스 | Quality Hub",
+  title: "QFD 매트릭스 | QMintel",
   description:
     "품질기능전개(QFD) 매트릭스를 직접 입력하고 Excel로 다운로드. VOC부터 공정 매개변수까지 3단계 폭포 구조 지원.",
 };

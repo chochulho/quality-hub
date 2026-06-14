@@ -4,7 +4,7 @@ import { ArrowLeft, BookOpen } from "lucide-react";
 import AttributeControlChart from "@/components/control-chart/AttributeControlChart";
 
 export const metadata: Metadata = {
-  title: "계수치 관리도 — p / np / c / u | Quality Hub",
+  title: "계수치 관리도 — p / np / c / u | QMintel",
   description: "p, np, c, u 관리도를 직접 그려보세요. 불량 수·결점 수 데이터를 입력하면 관리한계를 자동 계산하고 Excel로 내보낼 수 있습니다.",
 };
 

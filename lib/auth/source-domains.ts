@@ -17,7 +17,7 @@ export interface SourceDomainConfig {
 
 export const SOURCE_DOMAIN_CONFIG: Record<string, SourceDomainConfig> = {
   'quality-hub': {
-    label: 'Quality Hub',
+    label: 'QMintel',
     toolKey: null,
     defaultPlan: 'free',
     skipEmailConfirm: false,

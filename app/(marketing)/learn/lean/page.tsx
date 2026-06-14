@@ -10,7 +10,7 @@ import { ExamCase } from "@/components/mdx/ExamCase";
 import { KanbanFlowDemo } from "@/components/lean/KanbanFlowDemo";
 
 export const metadata: Metadata = {
-  title: "린 생산 가이드 | Quality Hub",
+  title: "린 생산 가이드 | QMintel",
   description:
     "린 생산방식(Lean Production), 사이클·택트 타임, SMED & Changeover를 한 페이지에서 탭으로 학습합니다.",
 };

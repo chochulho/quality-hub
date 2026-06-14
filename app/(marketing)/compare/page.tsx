@@ -2,9 +2,9 @@ import Link from 'next/link'
 import { ArrowRight, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
 
 export const metadata = {
-  title: '자체 구축 vs quality-hub — QMS 비용 비교',
+  title: '자체 구축 vs QMintel — QMS 비용 비교',
   description:
-    'QMS를 직접 구축하면 얼마나 드나요? 초기 비용·구축 기간·운영비를 quality-hub Business와 실제로 비교해 보세요.',
+    'QMS를 직접 구축하면 얼마나 드나요? 초기 비용·구축 기간·운영비를 QMintel Business와 실제로 비교해 보세요.',
 }
 
 const COMPARE_ROWS: {
@@ -86,7 +86,7 @@ export default function ComparePage() {
                 자체 구축
               </th>
               <th className="text-center py-4 px-4 font-extrabold text-white bg-brand-navy rounded-tr-xl">
-                quality‑hub Business
+                QMintel Business
               </th>
             </tr>
           </thead>
@@ -129,7 +129,7 @@ export default function ComparePage() {
                     </div>
                   </td>
 
-                  {/* quality-hub */}
+                  {/* QMintel */}
                   <td className="py-4 px-4 text-center align-top bg-brand-navy/5">
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-center gap-1.5">
@@ -196,7 +196,7 @@ export default function ComparePage() {
               APQP Manager는 단순 양식 도구가 아닙니다.{' '}
               <strong className="text-foreground">AI와 대화하면서 AIAG‑VDA 규격에 맞는 FMEA를 자동 작성</strong>
               합니다. 이 기능을 직접 구축하는 것은 현실적으로 불가능하며,{' '}
-              quality‑hub Business 구독에 기본 포함됩니다.
+              QMintel Business 구독에 기본 포함됩니다.
             </p>
             <Link
               href="/calculators/fmea-demo"
