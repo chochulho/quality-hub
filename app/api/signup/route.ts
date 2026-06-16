@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { SOURCE_DOMAIN_CONFIG, ALL_ALLOWED_ORIGINS } from '@/lib/auth/source-domains'
+import { getValidInvite } from '@/lib/auth/invite'
 
 // ── CORS helpers ────────────────────────────────────────────────
 
@@ -30,6 +31,7 @@ interface SignupBody {
   orgType?: 'individual' | 'corporate'
   sourceDomain?: string  // key from SOURCE_DOMAIN_CONFIG (e.g. 'auditsay')
   toolKey?: string       // override; falls back to config.toolKey
+  inviteToken?: string   // org_members.invite_token — 팀원 초대 수락 가입
 }
 
 export async function POST(req: NextRequest) {
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '잘못된 요청 형식입니다.' }, { status: 400, headers: corsHeaders })
   }
 
-  const { email, password, name, orgName, orgType = 'individual', sourceDomain = 'quality-hub', toolKey: bodyToolKey } = body
+  const { email, password, name, orgName, orgType = 'individual', sourceDomain = 'quality-hub', toolKey: bodyToolKey, inviteToken } = body
 
   if (!email || !password || !name) {
     return NextResponse.json({ error: '필수 항목이 누락되었습니다.' }, { status: 400, headers: corsHeaders })
@@ -59,11 +61,28 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient()
 
+  // 0. 팀원 초대 토큰 검증 (있는 경우) — 유효하면 register_org를 건너뛰고 기존 조직에 합류
+  let invite: { id: string; org_id: string } | null = null
+
+  if (inviteToken) {
+    const result = await getValidInvite(supabase, inviteToken)
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: 400, headers: corsHeaders })
+    }
+    if (result.row.invited_email?.toLowerCase() !== email.toLowerCase()) {
+      return NextResponse.json(
+        { error: '이 초대는 다른 이메일 주소로 발송되었습니다.' },
+        { status: 400, headers: corsHeaders },
+      )
+    }
+    invite = { id: result.row.id, org_id: result.row.org_id }
+  }
+
   // 1. Create auth user
   const { data: authData, error: createError } = await supabase.auth.admin.createUser({
     email,
     password,
-    email_confirm: domainCfg.skipEmailConfirm,
+    email_confirm: invite ? true : domainCfg.skipEmailConfirm,
     user_metadata: { full_name: name },
   })
 
@@ -77,6 +96,43 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = authData.user.id
+
+  // 1-B. 초대 수락 — 새 조직 생성 없이 기존 초대 행에 연결
+  if (invite) {
+    const { error: linkError } = await supabase
+      .from('org_members')
+      .update({ user_id: userId, status: 'active' })
+      .eq('id', invite.id)
+      .is('user_id', null)
+
+    if (linkError) {
+      await supabase.auth.admin.deleteUser(userId)
+      return NextResponse.json(
+        { error: '초대 연결 중 오류가 발생했습니다.' },
+        { status: 500, headers: corsHeaders },
+      )
+    }
+
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('plan_id')
+      .eq('id', invite.org_id)
+      .single()
+
+    return NextResponse.json(
+      {
+        success: true,
+        userId,
+        orgId: invite.org_id,
+        planId: org?.plan_id ?? 'free',
+        requiresApproval: false,
+        requiresEmailConfirm: false,
+        skipEmailConfirm: true,
+      },
+      { status: 201, headers: corsHeaders },
+    )
+  }
+
   const finalOrgName = orgType === 'corporate' && orgName ? orgName : `${name}의 계정`
 
   // 2. register_org RPC — creates org (plan=free), primary site, owner member atomically

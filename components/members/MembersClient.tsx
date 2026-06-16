@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check } from 'lucide-react'
-import { inviteMember, updateMemberRole, removeMember, updateMemberSites } from '@/app/(workspace)/members/actions'
+import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check, Send } from 'lucide-react'
+import { inviteMember, updateMemberRole, removeMember, updateMemberSites, resendInvite } from '@/app/(workspace)/members/actions'
 
 export interface MemberRow {
   id: string
@@ -43,14 +43,17 @@ function InviteModal({ onClose, currentCount, maxMembers }: {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<'admin' | 'member'>('member')
   const [error, setError] = useState('')
+  const [warning, setWarning] = useState('')
   const [isPending, startTransition] = useTransition()
   const atLimit = maxMembers > 0 && currentCount >= maxMembers
 
   function handleSubmit() {
     setError('')
+    setWarning('')
     startTransition(async () => {
       const result = await inviteMember(email, role)
       if (result.error) setError(result.error)
+      else if (result.warning) setWarning(result.warning)
       else onClose()
     })
   }
@@ -97,8 +100,9 @@ function InviteModal({ onClose, currentCount, maxMembers }: {
         </div>
 
         {error && <p className="text-xs text-destructive mb-3">{error}</p>}
+        {warning && <p className="text-xs text-amber-700 mb-3">{warning} (멤버 목록에서 재전송할 수 있습니다)</p>}
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 rounded-full border border-border px-4 py-3 text-sm font-semibold hover:bg-muted transition-colors">취소</button>
+          <button onClick={onClose} className="flex-1 rounded-full border border-border px-4 py-3 text-sm font-semibold hover:bg-muted transition-colors">{warning ? '닫기' : '취소'}</button>
           <button onClick={handleSubmit} disabled={isPending || !email.trim() || atLimit}
             className="flex-1 flex items-center justify-center gap-2 rounded-full bg-brand-orange text-white px-4 py-3 text-sm font-semibold hover:bg-brand-orange-hover transition-all disabled:opacity-50"
           >
@@ -205,6 +209,7 @@ export default function MembersClient({ members, sites, canManage, currentUserId
   const [showInvite, setShowInvite] = useState(false)
   const [siteTarget, setSiteTarget] = useState<MemberRow | null>(null)
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [resendMsg, setResendMsg] = useState<{ id: string; text: string } | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const siteNameMap = new Map(sites.map((s) => [s.id, s.name]))
@@ -213,6 +218,16 @@ export default function MembersClient({ members, sites, canManage, currentUserId
     if (!confirm('이 멤버를 제거하시겠습니까?')) return
     setPendingId(id)
     startTransition(async () => { await removeMember(id); setPendingId(null) })
+  }
+
+  function handleResend(id: string) {
+    setPendingId(id)
+    setResendMsg(null)
+    startTransition(async () => {
+      const result = await resendInvite(id)
+      setPendingId(null)
+      setResendMsg({ id, text: result.error ?? result.warning ?? '초대 메일을 재전송했습니다.' })
+    })
   }
 
   function handleRoleToggle(id: string, currentRole: 'admin' | 'member') {
@@ -254,7 +269,12 @@ export default function MembersClient({ members, sites, canManage, currentUserId
           <tbody>
             {members.map((m) => (
               <tr key={m.id} className="border-t border-border hover:bg-muted/20 transition-colors">
-                <td className="px-5 py-3.5 font-medium text-foreground">{m.email}</td>
+                <td className="px-5 py-3.5 font-medium text-foreground">
+                  {m.email}
+                  {resendMsg?.id === m.id && (
+                    <p className="text-[11px] font-normal text-muted-foreground mt-0.5">{resendMsg.text}</p>
+                  )}
+                </td>
                 <td className="px-4 py-3.5">
                   <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
                     {m.role === 'owner' && <ShieldCheck className="h-3.5 w-3.5 text-brand-orange" />}
@@ -294,6 +314,20 @@ export default function MembersClient({ members, sites, canManage, currentUserId
                   <td className="px-4 py-3.5 text-right">
                     {m.role !== 'owner' && (
                       <div className="flex items-center justify-end gap-1">
+                        {/* 초대 재전송 */}
+                        {m.status === 'invited' && (
+                          <button
+                            onClick={() => handleResend(m.id)}
+                            disabled={isPending && pendingId === m.id}
+                            className="text-xs text-muted-foreground hover:text-brand-orange transition-colors border border-border rounded-full px-2.5 py-1 hover:border-brand-orange"
+                            title="초대 메일 재전송"
+                          >
+                            {isPending && pendingId === m.id
+                              ? <Loader2 className="h-3 w-3 animate-spin" />
+                              : <Send className="h-3 w-3 inline mr-0.5" />}
+                            재전송
+                          </button>
+                        )}
                         {/* 사업장 배정 (member만) */}
                         {m.role === 'member' && sites.length > 0 && (
                           <button
