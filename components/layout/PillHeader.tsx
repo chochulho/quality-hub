@@ -50,6 +50,13 @@ const CALCULATOR_TOOLS = [
     color: "text-brand-orange",
   },
   {
+    href:  "/new-qc7",
+    label: "신 QC 7가지 도구",
+    desc:  "친화도 · 연관도 · 계통도 · PDPC",
+    Icon:  ListChecks,
+    color: "text-brand-orange",
+  },
+  {
     href:  "/calculators/fmea-demo",
     label: "FMEA 체험 데모",
     desc:  "AI 대화형 AIAG-VDA",

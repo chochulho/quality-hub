@@ -56,7 +56,7 @@ export const TOOLS: Record<ToolId, ToolDef> = {
       'AI 부적합 보고서 초안 자동 생성',
       '연간 심사 계획 · 심사원 관리 · EHS 안전관리',
     ],
-    href: 'https://auditsay.com',
+    href: 'https://auditsay.com?from=qmintel',
     color: 'bg-brand-navy',
   },
   'nc-manager': {

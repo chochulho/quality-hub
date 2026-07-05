@@ -20,8 +20,9 @@ const TOOL_DOT: Record<string, string> = {
 
 // 무료 계산 도구 (v2)
 const CALCULATOR_TOOLS = [
-  { href: "/calculators/spc",  label: "SPC 분석기",     Icon: BarChart3 },
-  { href: "/calculators/qc7",  label: "QC 7가지 도구",  Icon: ListChecks },
+  { href: "/calculators/spc",  label: "SPC 분석기",        Icon: BarChart3 },
+  { href: "/calculators/qc7",  label: "QC 7가지 도구",     Icon: ListChecks },
+  { href: "/new-qc7",          label: "신 QC 7가지 도구",  Icon: ListChecks },
   { href: null,                label: "FMEA 체험 데모 (준비 중)", Icon: FlaskConical },
 ] as const;
 

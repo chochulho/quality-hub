@@ -19,7 +19,7 @@ interface SsoTarget {
 const SSO_CONFIG: Partial<Record<ToolId, SsoTarget>> = {
   'auditsay': {
     type: 'same_project',
-    redirectTo: 'https://auditsay.com',   // Vite SPA — hash token 자동 감지
+    redirectTo: 'https://auditsay.com?from=qmintel',   // Vite SPA — hash token 자동 감지
     autoProvision: true,                   // profiles + company 자동 생성
   },
   'nc-manager': {
@@ -69,17 +69,19 @@ export async function GET(
   // 2. 플랜 접근 권한 확인 (superadmin 제외)
   const isSuperadmin = user.email === SUPERADMIN_EMAIL
   let memberPlanId = 'free'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let membershipRow: any = null
 
   if (!isSuperadmin) {
     const { data: membership } = await supabase.rpc('get_my_membership')
-    const m = membership?.[0]
+    membershipRow = membership?.[0]
 
-    if (!m || m.org_status !== 'active') {
+    if (!membershipRow || membershipRow.org_status !== 'active') {
       return NextResponse.redirect(new URL('/pricing', request.url))
     }
 
-    memberPlanId = m.plan_id ?? 'free'
-    const hasAccess = await checkToolAccess(supabase, m.org_id, memberPlanId, toolId)
+    memberPlanId = membershipRow.plan_id ?? 'free'
+    const hasAccess = await checkToolAccess(supabase, membershipRow.org_id, memberPlanId, toolId)
     if (!hasAccess) {
       return NextResponse.redirect(new URL('/pricing', request.url))
     }
@@ -115,34 +117,30 @@ export async function GET(
     // ── same_project (auditsay — Supabase 매직 링크) ───────────────
     const adminClient = createAdminClient()
 
-    // 4. auditsay: profiles 레코드 없으면 자동 생성 (register_user RPC)
+    // 4. auditsay: org 단위 company 공유 프로비저닝
+    //    같은 QMintel org 멤버 → 동일 AuditSay company_id 공유
+    //    profile 유무와 무관하게 항상 company_id를 교정
     if (ssoConfig.autoProvision) {
-      const { data: profile } = await adminClient
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle()
+      const displayName = user.user_metadata?.full_name
+        ?? user.email!.split('@')[0]
 
-      if (!profile) {
-        const displayName = user.user_metadata?.full_name
-          ?? user.email!.split('@')[0]
+      // org 식별자: superadmin은 이메일 도메인, 일반 멤버는 org_id
+      const orgId      = membershipRow?.org_id ?? user.email!.split('@')[1]
+      const orgName    = membershipRow?.org_name ?? user.email!.split('@')[1]
+      const orgKey     = `qmintel:${orgId}`
 
-        // QH 구독 통과 = auditsay 최고 등급 (enterprise)
-        const auditsayGrade = 'enterprise'
+      const { error: rpcErr } = await adminClient.rpc('provision_sso_user', {
+        p_user_id:         user.id,
+        p_name:            displayName,
+        p_email:           user.email!,
+        p_org_external_id: orgKey,
+        p_org_name:        orgName,
+        p_grade:           'enterprise',
+      })
 
-        const { error: rpcErr } = await adminClient.rpc('register_user', {
-          p_user_id:      user.id,
-          p_name:         displayName,
-          p_company_name: displayName,   // 추후 대시보드에서 수정 가능
-          p_type:         'individual',
-          p_grade:        auditsayGrade,
-          p_department:   '',
-        })
-
-        if (rpcErr) {
-          console.error('[SSO:auditsay] register_user 실패:', rpcErr.message)
-          // profile 생성 실패해도 로그인 시도는 계속
-        }
+      if (rpcErr) {
+        console.error('[SSO:auditsay] provision_sso_user 실패:', rpcErr.message)
+        // 실패해도 로그인 시도는 계속
       }
     }
 
