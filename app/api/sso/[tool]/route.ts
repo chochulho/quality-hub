@@ -103,7 +103,17 @@ export async function GET(
       const displayName = user.user_metadata?.full_name
         ?? user.email!.split('@')[0]
 
-      const token = await new SignJWT({ email: user.email, name: displayName, plan: 'platinum' })
+      // org 식별자: superadmin은 이메일 도메인, 일반 멤버는 org_id — auditsay와 동일 패턴
+      const orgId   = membershipRow?.org_id ?? user.email!.split('@')[1]
+      const orgName = membershipRow?.org_name ?? user.email!.split('@')[1]
+
+      const token = await new SignJWT({
+        email: user.email,
+        name: displayName,
+        plan: 'platinum',
+        org_id: orgId,
+        org_name: orgName,
+      })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
         .setExpirationTime('5m')
