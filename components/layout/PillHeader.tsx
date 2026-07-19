@@ -334,16 +334,18 @@ export default function PillHeader() {
                 )}
               </li>
 
-              {/* 블로그 */}
-              <li>
-                <Link
-                  href="/blog"
-                  onClick={close}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  블로그
-                </Link>
-              </li>
+              {/* 블로그 — 비로그인(마케팅 방문자) 전용 */}
+              {!session && (
+                <li>
+                  <Link
+                    href="/blog"
+                    onClick={close}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    블로그
+                  </Link>
+                </li>
+              )}
 
               {/* 요금제 */}
               <li>

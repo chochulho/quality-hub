@@ -205,13 +205,15 @@ export default function MobileNav({ open, onClose, userSession }: MobileNavProps
             )}
           </div>
 
-          {/* 블로그 */}
-          <Link
-            href="/blog" onClick={onClose}
-            className="flex items-center justify-between py-3.5 text-base font-medium text-foreground hover:text-brand-orange transition-colors border-b border-border/50"
-          >
-            블로그 <ArrowRight className="h-4 w-4 text-muted-foreground" />
-          </Link>
+          {/* 블로그 — 비로그인(마케팅 방문자) 전용 */}
+          {!userSession && (
+            <Link
+              href="/blog" onClick={onClose}
+              className="flex items-center justify-between py-3.5 text-base font-medium text-foreground hover:text-brand-orange transition-colors border-b border-border/50"
+            >
+              블로그 <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          )}
 
           {/* 요금제 */}
           <Link

@@ -9,7 +9,14 @@ const siteLinks = [
   { href: "/about", label: "소개" },
 ];
 
-export default function Footer() {
+interface FooterProps {
+  /** 로그인 사용자에게는 블로그 링크 숨김 — §헤더와 동일 정책 */
+  hideBlog?: boolean;
+}
+
+export default function Footer({ hideBlog = false }: FooterProps) {
+  const links = hideBlog ? siteLinks.filter((l) => l.href !== "/blog") : siteLinks;
+
   return (
     <footer className="bg-background-soft border-t border-border mt-auto">
       <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
@@ -30,7 +37,7 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-3">이 사이트</h3>
             <ul className="space-y-2">
-              {siteLinks.map((link) => (
+              {links.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
