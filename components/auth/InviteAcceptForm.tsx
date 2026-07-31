@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -17,11 +18,13 @@ export default function InviteAcceptForm({ token, email }: Props) {
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setAlreadyRegistered(false)
 
     if (password.length < 6) {
       setError('비밀번호는 6자 이상이어야 합니다.')
@@ -41,6 +44,7 @@ export default function InviteAcceptForm({ token, email }: Props) {
 
       if (!res.ok) {
         setError(data.error ?? '가입 중 오류가 발생했습니다.')
+        if (data.code === 'ALREADY_REGISTERED_CONFIRMED') setAlreadyRegistered(true)
         setLoading(false)
         return
       }
@@ -111,7 +115,17 @@ export default function InviteAcceptForm({ token, email }: Props) {
         {error && (
           <div className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>{error}</span>
+            <div>
+              <span>{error}</span>
+              {alreadyRegistered && (
+                <Link
+                  href={`/login?next=${encodeURIComponent(`/invite?token=${token}`)}`}
+                  className="block mt-1 font-semibold underline"
+                >
+                  로그인 후 참여하기 →
+                </Link>
+              )}
+            </div>
           </div>
         )}
 
