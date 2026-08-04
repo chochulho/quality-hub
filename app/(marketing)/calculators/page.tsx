@@ -28,13 +28,13 @@ const tools = [
     available: true,
   },
   {
-    href:  null,
+    href:  "/calculators/fmea-demo",
     Icon:  FlaskConical,
     label: "FMEA 체험 데모",
     sublabel: "AI 대화형 AIAG-VDA",
     desc:  "AI와 대화하면서 FMEA 자동 작성. 3분 체험. APQP Manager의 핵심 기능 미리보기.",
     keywords: ["FMEA 작성법", "AIAG VDA FMEA", "AI FMEA"],
-    available: false,
+    available: true,
   },
 ];
 

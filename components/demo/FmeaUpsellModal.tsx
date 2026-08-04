@@ -5,6 +5,7 @@ import { ArrowRight, X, Zap, CheckCircle2 } from 'lucide-react'
 
 interface Props {
   onClose: () => void
+  reason?: 'turns' | 'daily'
 }
 
 const UPSELL_POINTS = [
@@ -15,7 +16,11 @@ const UPSELL_POINTS = [
   'AI 다국어 번역 (영어·중국어·베트남어)',
 ]
 
-export default function FmeaUpsellModal({ onClose }: Props) {
+export default function FmeaUpsellModal({ onClose, reason = 'turns' }: Props) {
+  const description =
+    reason === 'daily'
+      ? '오늘 체험 가능한 횟수를 모두 사용했습니다. 내일 다시 체험하거나, 지금 APQP Manager에서 AI 대화형 FMEA를 팀과 함께 실제로 작성해 보세요.'
+      : 'APQP Manager에서 AI 대화형 FMEA를 팀과 함께 실제로 작성해 보세요.'
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* 백드롭 */}
@@ -43,7 +48,7 @@ export default function FmeaUpsellModal({ onClose }: Props) {
             전체 기능을 사용해 보세요
           </h2>
           <p className="text-sm text-muted-foreground" style={{ wordBreak: 'keep-all' }}>
-            APQP Manager에서 AI 대화형 FMEA를 팀과 함께 실제로 작성해 보세요.
+            {description}
           </p>
         </div>
 

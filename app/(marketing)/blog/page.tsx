@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getBlogPosts } from "@/lib/content";
-import { Clock } from "lucide-react";
+import { ArrowRight, Bot, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -40,6 +40,26 @@ export default async function BlogPage({ searchParams }: PageProps) {
       <h1 className="text-4xl font-extrabold text-brand-navy mb-10">
         품질 이야기
       </h1>
+
+      {/* AI FMEA 데모 연결 */}
+      <Link
+        href="/calculators/fmea-demo"
+        className="group mb-10 p-6 rounded-3xl bg-background-soft border border-border flex items-center justify-between flex-wrap gap-4 hover:border-brand-orange transition-all duration-200"
+      >
+        <div className="flex items-start gap-3">
+          <div className="bg-brand-orange/10 rounded-xl p-2.5 shrink-0">
+            <Bot className="h-5 w-5 text-brand-orange" />
+          </div>
+          <div>
+            <p className="font-bold text-brand-navy mb-1">글로 읽는 것보다 직접 해보고 싶다면?</p>
+            <p className="text-sm text-muted-foreground">AI와 대화하며 FMEA를 완성하는 데모, 회원가입 없이 3분이면 체험할 수 있습니다.</p>
+          </div>
+        </div>
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-orange border border-brand-orange rounded-full px-5 py-2.5 group-hover:bg-brand-orange group-hover:text-white transition-all duration-200 shrink-0">
+          FMEA 데모 체험하기
+          <ArrowRight className="h-4 w-4" />
+        </span>
+      </Link>
 
       {posts.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">

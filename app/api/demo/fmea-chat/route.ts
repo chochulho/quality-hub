@@ -1,9 +1,78 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest } from 'next/server'
+import { createHash } from 'node:crypto'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getSession } from '@/lib/auth/session'
 
 export const runtime = 'nodejs'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+// 비로그인 IP당(또는 로그인 계정당) 1일 1세션, 세션당 사용자 턴 2회로 제한 (SPEC-WORKSPACE.md §7.3)
+const MAX_TURNS = 2
+
+function getIpHash(req: NextRequest): string {
+  const forwardedFor = req.headers.get('x-forwarded-for')
+  const ip = forwardedFor ? forwardedFor.split(',')[0].trim() : req.headers.get('x-real-ip') ?? 'unknown'
+  return createHash('sha256').update(ip).digest('hex')
+}
+
+function getStartOfTodayKstIso(): string {
+  const KST_OFFSET_MS = 9 * 60 * 60 * 1000
+  const kstNow = new Date(Date.now() + KST_OFFSET_MS)
+  const startOfDayKstUtcMs =
+    Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - KST_OFFSET_MS
+  return new Date(startOfDayKstUtcMs).toISOString()
+}
+
+type DemoLimitResult = { allowed: true; turnsLeft: number } | { allowed: false }
+
+async function checkAndRecordTurn(params: {
+  userId: string | null
+  ipHash: string
+  scenario: string
+  isAuto: boolean
+}): Promise<DemoLimitResult> {
+  const supabase = createAdminClient()
+  const sinceIso = getStartOfTodayKstIso()
+
+  const baseQuery = supabase
+    .from('fmea_demo_sessions')
+    .select('id, turn_count, completed')
+    .gte('created_at', sinceIso)
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  const { data: existing } = await (params.userId
+    ? baseQuery.eq('user_id', params.userId)
+    : baseQuery.eq('ip_hash', params.ipHash).is('user_id', null)
+  ).maybeSingle()
+
+  if (existing?.completed) {
+    return { allowed: false }
+  }
+
+  if (!existing) {
+    const initialTurnCount = params.isAuto ? 0 : 1
+    await supabase.from('fmea_demo_sessions').insert({
+      user_id: params.userId,
+      scenario_key: params.scenario,
+      ip_hash: params.ipHash,
+      turn_count: initialTurnCount,
+      completed: initialTurnCount >= MAX_TURNS,
+    })
+    return { allowed: true, turnsLeft: MAX_TURNS - initialTurnCount }
+  }
+
+  const nextTurnCount = params.isAuto ? existing.turn_count : existing.turn_count + 1
+  const completed = nextTurnCount >= MAX_TURNS
+  await supabase
+    .from('fmea_demo_sessions')
+    .update({ turn_count: nextTurnCount, completed })
+    .eq('id', existing.id)
+
+  return { allowed: true, turnsLeft: Math.max(0, MAX_TURNS - nextTurnCount) }
+}
 
 const SCENARIOS: Record<string, { title: string; systemPrompt: string }> = {
   brake_pedal: {
@@ -84,11 +153,39 @@ isSafetyCritical은 안전·법규 관련 불량 시 true.
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, scenario } = await req.json()
+    const { messages, scenario, isAuto } = await req.json()
 
     const scenarioDef = SCENARIOS[scenario as string]
     if (!scenarioDef) {
       return new Response(JSON.stringify({ error: '잘못된 시나리오' }), { status: 400 })
+    }
+
+    const session = await getSession()
+    const ipHash = getIpHash(req)
+
+    let limit: DemoLimitResult
+    try {
+      limit = await checkAndRecordTurn({
+        userId: session?.id ?? null,
+        ipHash,
+        scenario,
+        isAuto: !!isAuto,
+      })
+    } catch (err) {
+      // 제한 체크 자체가 실패해도 데모 이용은 막지 않는다 (fail-open)
+      console.error('FMEA demo rate-limit check failed:', err)
+      limit = { allowed: true, turnsLeft: MAX_TURNS }
+    }
+
+    if (!limit.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'DAILY_LIMIT_REACHED',
+          message:
+            '오늘 체험 가능한 횟수를 모두 사용했습니다. 내일 다시 시도하거나 APQP Manager에서 전체 기능을 사용해 보세요.',
+        }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } }
+      )
     }
 
     // 비스트리밍 호출 — try-catch 안에서 완전히 처리
@@ -110,6 +207,7 @@ export async function POST(req: NextRequest) {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
         'Cache-Control': 'no-cache',
+        'X-Demo-Turns-Left': String(limit.turnsLeft),
       },
     })
   } catch (err) {

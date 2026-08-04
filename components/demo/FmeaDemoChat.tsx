@@ -67,6 +67,8 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
   const [loading, setLoading] = useState(false)
   const [turnCount, setTurnCount] = useState(0)
   const [showUpsell, setShowUpsell] = useState(false)
+  const [upsellReason, setUpsellReason] = useState<'turns' | 'daily'>('turns')
+  const [dailyLimitReached, setDailyLimitReached] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -88,7 +90,13 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
   const sendMessage = useCallback(
     async (content: string, isAuto = false) => {
       if (!content.trim() || loading) return
+      if (dailyLimitReached) {
+        setUpsellReason('daily')
+        setShowUpsell(true)
+        return
+      }
       if (!isAuto && turnCount >= MAX_TURNS) {
+        setUpsellReason('turns')
         setShowUpsell(true)
         return
       }
@@ -108,8 +116,25 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
         const res = await fetch('/api/demo/fmea-chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: apiMessages, scenario }),
+          body: JSON.stringify({ messages: apiMessages, scenario, isAuto }),
         })
+
+        if (res.status === 429) {
+          setDailyLimitReached(true)
+          setTurnCount(MAX_TURNS)
+          setUpsellReason('daily')
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'assistant',
+              content:
+                '오늘 체험 가능한 횟수를 모두 사용했습니다. 내일 다시 시도하거나 APQP Manager에서 전체 기능을 사용해 보세요.',
+            },
+          ])
+          setShowUpsell(true)
+          return
+        }
+
         if (!res.ok || !res.body) throw new Error('응답 오류')
 
         const reader = res.body.getReader()
@@ -167,10 +192,11 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
 
       // 마지막 턴 직후 업셀
       if (!isAuto && turnCount + 1 >= MAX_TURNS) {
+        setUpsellReason('turns')
         setTimeout(() => setShowUpsell(true), 1500)
       }
     },
-    [messages, loading, turnCount, scenario]
+    [messages, loading, turnCount, scenario, dailyLimitReached]
   )
 
   const prompts = QUICK_PROMPTS[scenario]
@@ -306,7 +332,7 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
       </div>
 
       {/* 업셀 모달 */}
-      {showUpsell && <FmeaUpsellModal onClose={() => setShowUpsell(false)} />}
+      {showUpsell && <FmeaUpsellModal onClose={() => setShowUpsell(false)} reason={upsellReason} />}
     </div>
   )
 }

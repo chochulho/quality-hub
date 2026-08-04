@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Bot, Zap, Car, Battery } from 'lucide-react'
+import { Bot, Zap, Car, Battery, RefreshCw } from 'lucide-react'
 import FmeaDemoChat, { type DemoScenario } from '@/components/demo/FmeaDemoChat'
 import FmeaWorksheet from '@/components/demo/FmeaWorksheet'
 import { type FmeaRow, rowKey } from '@/components/demo/FmeaDemoTable'
@@ -82,6 +82,32 @@ export default function FmeaDemoPage() {
       {!selected ? (
         /* 시나리오 선택 */
         <>
+          {/* 핵심 기능 */}
+          <p className="text-center text-xs font-semibold text-brand-orange mb-3">
+            APQP Manager 핵심 기능
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+            <div className="rounded-2xl border border-border bg-white p-5">
+              <div className="inline-flex items-center justify-center w-9 h-9 bg-brand-orange/10 rounded-xl mb-3">
+                <Bot className="h-4 w-4 text-brand-orange" />
+              </div>
+              <h3 className="text-sm font-bold text-brand-navy mb-1">AI 대화형 FMEA 챗봇</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed" style={{ wordBreak: 'keep-all' }}>
+                공정을 설명하면 AI가 불량 유형·원인·조치우선순위를 자동 제안합니다. 지금 아래에서 바로 체험할 수 있습니다.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-white p-5">
+              <div className="inline-flex items-center justify-center w-9 h-9 bg-brand-navy/5 rounded-xl mb-3">
+                <RefreshCw className="h-4 w-4 text-brand-navy" />
+              </div>
+              <h3 className="text-sm font-bold text-brand-navy mb-1">구형 양식 → AIAG-VDA 신양식 자동 변환</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed" style={{ wordBreak: 'keep-all' }}>
+                기존에 만들어 둔 구형 Excel·PDF FMEA를 AI가 자동 파싱해 신양식으로 가져옵니다. 기존 자산을 버리지 않아도 됩니다.
+                <span className="text-brand-orange"> APQP Manager 전용 기능</span>입니다.
+              </p>
+            </div>
+          </div>
+
           <p className="text-center text-sm font-semibold text-muted-foreground mb-5">
             분석할 시나리오를 선택하세요
           </p>
