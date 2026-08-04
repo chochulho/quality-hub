@@ -130,6 +130,33 @@ export const ALL_TOOL_IDS: ToolId[] = [
   '4m-change-manager',
 ]
 
+// ── 개발중 도구 (마케팅 노출용, 플랜/SSO/과금 로직 대상 아님) ──────
+// 아직 URL·상세 기능 미확정 — 확정 전까지 링크 없이 "개발중" 배지만 표시
+export interface UpcomingToolDef {
+  id: string
+  name: string
+  tagline: string
+  description: string
+  color: string
+}
+
+export const UPCOMING_TOOLS: UpcomingToolDef[] = [
+  {
+    id: 'supply-chain-manager',
+    name: 'Supply Chain Manager',
+    tagline: '공급망 관리',
+    description: '협력업체 정보·심사 이력·품질/납기 성과를 통합 관리합니다.',
+    color: 'bg-slate-700',
+  },
+  {
+    id: 'management',
+    name: 'Management',
+    tagline: '경영관리',
+    description: 'KPI/BSC, 경영검토, 리스크 분석, 비상계획을 통합 관리합니다.',
+    color: 'bg-teal-700',
+  },
+]
+
 // v2: 모든 도구 선택 가능 (Business 전용 폐지) — SSO 라우트 fallthrough용으로 빈 배열 유지
 export const PREMIUM_TOOL_IDS: ToolId[] = []
 

@@ -1,5 +1,5 @@
 import { ExternalLink } from "lucide-react";
-import { ALL_TOOL_IDS, TOOLS } from "@/lib/auth/grades";
+import { ALL_TOOL_IDS, TOOLS, UPCOMING_TOOLS } from "@/lib/auth/grades";
 
 export default function ToolGrid() {
   return (
@@ -51,6 +51,25 @@ export default function ToolGrid() {
               </div>
             );
           })}
+          {UPCOMING_TOOLS.map((tool) => (
+            <div
+              key={tool.id}
+              className="bg-white border border-dashed border-border rounded-3xl overflow-hidden opacity-90"
+            >
+              <div className={`${tool.color} px-6 py-5 relative`}>
+                <span className="absolute top-4 right-4 text-[10px] font-semibold rounded-full px-2.5 py-1 bg-white/20 text-white">
+                  개발중
+                </span>
+                <p className="text-xs font-medium text-white/70 mb-1">{tool.tagline}</p>
+                <h3 className="text-xl font-bold text-white">{tool.name}</h3>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {tool.description}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
