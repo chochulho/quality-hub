@@ -1,6 +1,7 @@
 'use client'
 
-import { AlertTriangle, ClipboardList, ExternalLink } from 'lucide-react'
+import { Fragment, useState } from 'react'
+import { AlertTriangle, ChevronDown, ClipboardList, ExternalLink } from 'lucide-react'
 import { type FmeaRow } from './FmeaDemoTable'
 
 const AP_STYLE: Record<string, string> = {
@@ -14,8 +15,19 @@ interface Props {
 }
 
 export default function FmeaWorksheet({ rows }: Props) {
+  const [expanded, setExpanded] = useState<Set<number>>(new Set())
+
   const highCount = rows.filter((r) => r.actionPriority === 'HIGH').length
   const safetyCriticalCount = rows.filter((r) => r.isSafetyCritical).length
+
+  function toggleExpand(i: number) {
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
+  }
 
   return (
     <div className="rounded-2xl border-2 border-brand-navy/20 overflow-hidden shadow-sm">
@@ -58,49 +70,85 @@ export default function FmeaWorksheet({ rows }: Props) {
                   <th className="text-center px-2 py-2.5 font-semibold">D</th>
                   <th className="text-center px-2 py-2.5 font-semibold">RPN</th>
                   <th className="text-center px-2 py-2.5 font-semibold">AP</th>
+                  <th className="text-center px-2 py-2.5 font-semibold w-8"></th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row, i) => {
                   const rpn = (row.severity ?? 1) * (row.occurrence ?? 1) * (row.detection ?? 1)
+                  const isExpanded = expanded.has(i)
                   return (
-                    <tr key={i} className="border-t border-border hover:bg-muted/20 transition-colors">
-                      <td className="px-2 py-2.5 text-center text-muted-foreground font-medium">{i + 1}</td>
-                      <td className="px-3 py-2.5 font-medium text-foreground whitespace-nowrap">
-                        {row.processStepName}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center gap-1 text-foreground font-medium">
-                          {row.isSafetyCritical && (
-                            <AlertTriangle className="h-3 w-3 text-red-500 shrink-0" />
-                          )}
-                          {row.failureMode}
-                        </div>
-                        <p className="text-muted-foreground text-[10px] mt-0.5 leading-snug">
-                          원인: {row.failureCause}
-                        </p>
-                      </td>
-                      <td className="px-3 py-2.5 text-muted-foreground max-w-[160px] leading-snug">
-                        {row.failureEffectEndUser}
-                      </td>
-                      <td className={`px-2 py-2.5 text-center font-semibold ${
-                        row.severity >= 9 ? 'text-red-600' : row.severity >= 7 ? 'text-amber-600' : 'text-foreground'
-                      }`}>
-                        {row.severity}
-                      </td>
-                      <td className="px-2 py-2.5 text-center text-foreground">{row.occurrence}</td>
-                      <td className="px-2 py-2.5 text-center text-foreground">{row.detection}</td>
-                      <td className={`px-2 py-2.5 text-center font-bold ${
-                        rpn >= 200 ? 'text-red-600' : rpn >= 100 ? 'text-amber-600' : 'text-foreground'
-                      }`}>
-                        {rpn}
-                      </td>
-                      <td className="px-2 py-2.5 text-center">
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${AP_STYLE[row.actionPriority] ?? AP_STYLE.LOW}`}>
-                          {row.actionPriority}
-                        </span>
-                      </td>
-                    </tr>
+                    <Fragment key={i}>
+                      <tr
+                        onClick={() => toggleExpand(i)}
+                        className="border-t border-border hover:bg-muted/20 transition-colors cursor-pointer"
+                      >
+                        <td className="px-2 py-2.5 text-center text-muted-foreground font-medium">{i + 1}</td>
+                        <td className="px-3 py-2.5 font-medium text-foreground whitespace-nowrap">
+                          {row.processStepName}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center gap-1 text-foreground font-medium">
+                            {row.isSafetyCritical && (
+                              <AlertTriangle className="h-3 w-3 text-red-500 shrink-0" />
+                            )}
+                            {row.failureMode}
+                          </div>
+                          <p className="text-muted-foreground text-[10px] mt-0.5 leading-snug">
+                            원인: {row.failureCause}
+                          </p>
+                        </td>
+                        <td className="px-3 py-2.5 text-muted-foreground max-w-[160px] leading-snug">
+                          {row.failureEffectEndUser}
+                        </td>
+                        <td className={`px-2 py-2.5 text-center font-semibold ${
+                          row.severity >= 9 ? 'text-red-600' : row.severity >= 7 ? 'text-amber-600' : 'text-foreground'
+                        }`}>
+                          {row.severity}
+                        </td>
+                        <td className="px-2 py-2.5 text-center text-foreground">{row.occurrence}</td>
+                        <td className="px-2 py-2.5 text-center text-foreground">{row.detection}</td>
+                        <td className={`px-2 py-2.5 text-center font-bold ${
+                          rpn >= 200 ? 'text-red-600' : rpn >= 100 ? 'text-amber-600' : 'text-foreground'
+                        }`}>
+                          {rpn}
+                        </td>
+                        <td className="px-2 py-2.5 text-center">
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${AP_STYLE[row.actionPriority] ?? AP_STYLE.LOW}`}>
+                            {row.actionPriority}
+                          </span>
+                        </td>
+                        <td className="px-2 py-2.5 text-center">
+                          <ChevronDown
+                            className={`h-3.5 w-3.5 text-muted-foreground mx-auto transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                          />
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="border-t border-border bg-muted/20">
+                          <td colSpan={10} className="px-4 py-3">
+                            <div className="grid sm:grid-cols-2 gap-3">
+                              <div>
+                                <p className="text-[10px] font-semibold text-brand-navy uppercase tracking-wide mb-1">
+                                  예방 관리 (Prevention)
+                                </p>
+                                <p className="text-[11px] text-muted-foreground leading-relaxed" style={{ wordBreak: 'keep-all' }}>
+                                  {row.preventionControls || '—'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-semibold text-brand-navy uppercase tracking-wide mb-1">
+                                  검출 관리 (Detection)
+                                </p>
+                                <p className="text-[11px] text-muted-foreground leading-relaxed" style={{ wordBreak: 'keep-all' }}>
+                                  {row.detectionControls || '—'}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   )
                 })}
               </tbody>
