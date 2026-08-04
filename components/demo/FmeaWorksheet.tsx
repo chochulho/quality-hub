@@ -18,7 +18,7 @@ export default function FmeaWorksheet({ rows }: Props) {
   const safetyCriticalCount = rows.filter((r) => r.isSafetyCritical).length
 
   return (
-    <div className="mt-6 rounded-2xl border-2 border-brand-navy/20 overflow-hidden shadow-sm">
+    <div className="rounded-2xl border-2 border-brand-navy/20 overflow-hidden shadow-sm">
       {/* 헤더 */}
       <div className="bg-brand-navy px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">

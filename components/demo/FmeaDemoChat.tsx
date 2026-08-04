@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Bot, User, Loader2 } from 'lucide-react'
+import { Send, Bot, User, Loader2, Car, Battery } from 'lucide-react'
 import FmeaDemoTable, { type FmeaRow } from './FmeaDemoTable'
 import FmeaUpsellModal from './FmeaUpsellModal'
 
 // ── Types ──────────────────────────────────────────────────────
 
-export type DemoScenario = 'brake_pedal' | 'bms_battery'
+export type DemoScenario = 'brake_pedal' | 'bms_battery' | 'custom'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -16,15 +16,32 @@ interface ChatMessage {
 }
 
 interface Props {
-  scenario: DemoScenario
-  scenarioTitle: string
   onAddRow?: (row: FmeaRow) => void
   addedKeys?: Set<string>
+  onReset?: () => void
 }
 
 // ── Constants ──────────────────────────────────────────────────
 
 const MAX_TURNS = 2   // user 메시지 기준
+const MAX_INPUT_LENGTH = 300
+
+const SCENARIO_META: Record<
+  Exclude<DemoScenario, 'custom'>,
+  { title: string; icon: typeof Car; initPrompt: string }
+> = {
+  brake_pedal: {
+    title: '브레이크 페달 사출 성형',
+    icon: Car,
+    initPrompt:
+      '브레이크 페달 사출 성형 공정 PFMEA 분석을 시작해줘. 첫 번째 공정 단계의 주요 불량 유형부터 분석해줘.',
+  },
+  bms_battery: {
+    title: 'BMS 배터리 팩 조립',
+    icon: Battery,
+    initPrompt: 'BMS 배터리 팩 조립 공정 DFMEA 분석을 시작해줘. 가장 위험도가 높은 공정부터 분석해줘.',
+  },
+}
 
 const QUICK_PROMPTS: Record<DemoScenario, string[]> = {
   brake_pedal: [
@@ -36,6 +53,11 @@ const QUICK_PROMPTS: Record<DemoScenario, string[]> = {
     '배터리 셀 모듈 조립에서 가장 위험한 불량 유형을 분석해줘',
     'IP67 실링 불량의 원인과 검출 방법은?',
     '최종 전기 검사에서 검출해야 할 핵심 항목은?',
+  ],
+  custom: [
+    '공정 단계를 더 자세히 설명해줘',
+    '이 공정에서 가장 위험한 불량은?',
+    '검출 방법을 제안해줘',
   ],
 }
 
@@ -61,7 +83,8 @@ function stripXml(text: string): string {
 
 // ── Component ──────────────────────────────────────────────────
 
-export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedKeys }: Props) {
+export default function FmeaDemoChat({ onAddRow, addedKeys, onReset }: Props) {
+  const [scenario, setScenario] = useState<DemoScenario | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -77,18 +100,9 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // 첫 메시지 자동 시작
-  useEffect(() => {
-    const init =
-      scenario === 'brake_pedal'
-        ? '브레이크 페달 사출 성형 공정 PFMEA 분석을 시작해줘. 첫 번째 공정 단계의 주요 불량 유형부터 분석해줘.'
-        : 'BMS 배터리 팩 조립 공정 DFMEA 분석을 시작해줘. 가장 위험도가 높은 공정부터 분석해줘.'
-    sendMessage(init, true)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   const sendMessage = useCallback(
-    async (content: string, isAuto = false) => {
+    async (content: string, opts: { isAuto?: boolean; scenarioKey?: DemoScenario } = {}) => {
+      const { isAuto = false, scenarioKey } = opts
       if (!content.trim() || loading) return
       if (dailyLimitReached) {
         setUpsellReason('daily')
@@ -100,6 +114,10 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
         setShowUpsell(true)
         return
       }
+
+      const activeScenario = scenarioKey ?? scenario
+      if (!activeScenario) return
+      if (scenarioKey && scenarioKey !== scenario) setScenario(scenarioKey)
 
       const userMsg: ChatMessage = { role: 'user', content }
       setMessages((prev) => [...prev, userMsg])
@@ -116,7 +134,7 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
         const res = await fetch('/api/demo/fmea-chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: apiMessages, scenario, isAuto }),
+          body: JSON.stringify({ messages: apiMessages, scenario: activeScenario, isAuto }),
         })
 
         if (res.status === 429) {
@@ -199,30 +217,92 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
     [messages, loading, turnCount, scenario, dailyLimitReached]
   )
 
-  const prompts = QUICK_PROMPTS[scenario]
+  function handleSubmitInput() {
+    if (!input.trim()) return
+    if (!scenario) {
+      sendMessage(input, { scenarioKey: 'custom' })
+    } else {
+      sendMessage(input)
+    }
+  }
+
+  function resetChat() {
+    setMessages([])
+    setScenario(null)
+    setTurnCount(0)
+    setShowUpsell(false)
+    onReset?.()
+  }
+
+  const prompts = scenario ? QUICK_PROMPTS[scenario] : []
   const turnsLeft = MAX_TURNS - turnCount
+  const headerTitle =
+    scenario === 'custom' ? '직접 입력한 공정' : scenario ? SCENARIO_META[scenario].title : 'FMEA AI 어시스턴트'
 
   return (
     <div className="flex flex-col h-full min-h-[560px]">
-      {/* 시나리오 헤더 */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/40 rounded-t-2xl shrink-0">
-        <div className="flex items-center gap-2">
-          <Bot className="h-4 w-4 text-brand-orange" />
-          <span className="text-sm font-semibold text-brand-navy">{scenarioTitle}</span>
+      {/* 헤더 */}
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border bg-muted/40 rounded-t-2xl shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <Bot className="h-4 w-4 text-brand-orange shrink-0" />
+          <span className="text-sm font-semibold text-brand-navy truncate">{headerTitle}</span>
         </div>
-        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-          turnsLeft <= 0
-            ? 'bg-red-100 text-red-600'
-            : turnsLeft <= 1
-            ? 'bg-amber-100 text-amber-700'
-            : 'bg-muted text-muted-foreground'
-        }`}>
-          남은 질문 {Math.max(0, turnsLeft)}회
-        </span>
+        <div className="flex items-center gap-3 shrink-0">
+          {scenario && (
+            <button
+              onClick={resetChat}
+              className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              새로 시작
+            </button>
+          )}
+          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+            turnsLeft <= 0
+              ? 'bg-red-100 text-red-600'
+              : turnsLeft <= 1
+              ? 'bg-amber-100 text-amber-700'
+              : 'bg-muted text-muted-foreground'
+          }`}>
+            남은 질문 {Math.max(0, turnsLeft)}회
+          </span>
+        </div>
       </div>
 
       {/* 메시지 영역 */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {/* 시나리오 미선택 시 안내 + 말풍선 버튼 */}
+        {!scenario && messages.length === 0 && (
+          <div className="flex gap-3">
+            <div className="shrink-0 w-7 h-7 rounded-full bg-brand-orange/10 flex items-center justify-center">
+              <Bot className="h-3.5 w-3.5 text-brand-orange" />
+            </div>
+            <div className="max-w-[85%] flex flex-col gap-3">
+              <div
+                className="rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed bg-white border border-border text-foreground"
+                style={{ wordBreak: 'keep-all' }}
+              >
+                어떤 공정을 함께 분석해볼까요? 아래 예시를 선택하거나, 직접 공정을 설명해 주세요.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(Object.keys(SCENARIO_META) as (keyof typeof SCENARIO_META)[]).map((key) => {
+                  const meta = SCENARIO_META[key]
+                  const Icon = meta.icon
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => sendMessage(meta.initPrompt, { isAuto: true, scenarioKey: key })}
+                      className="inline-flex items-center gap-2 text-xs font-medium bg-muted hover:bg-border text-foreground rounded-full pl-2.5 pr-3.5 py-2 transition-colors"
+                    >
+                      <Icon className="h-3.5 w-3.5 text-brand-orange" />
+                      {meta.title}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             {/* 아바타 */}
@@ -278,7 +358,7 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
       </div>
 
       {/* 빠른 질문 */}
-      {messages.length <= 2 && !loading && (
+      {scenario && messages.length <= 2 && !loading && (
         <div className="px-4 pb-2 flex flex-wrap gap-2 shrink-0">
           {prompts.map((p) => (
             <button
@@ -302,20 +382,23 @@ export default function FmeaDemoChat({ scenario, scenarioTitle, onAddRow, addedK
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
-                sendMessage(input)
+                handleSubmitInput()
               }
             }}
             placeholder={
               turnCount >= MAX_TURNS
                 ? '데모 체험이 완료됐습니다.'
-                : 'FMEA 분석 질문을 입력하세요...'
+                : scenario
+                ? 'FMEA 분석 질문을 입력하세요...'
+                : '예: SMT 스크린프린트 공정에서 발생하는 불량을 분석해줘'
             }
             disabled={loading || turnCount >= MAX_TURNS}
+            maxLength={MAX_INPUT_LENGTH}
             rows={1}
             className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
           />
           <button
-            onClick={() => sendMessage(input)}
+            onClick={handleSubmitInput}
             disabled={loading || !input.trim() || turnCount >= MAX_TURNS}
             className="shrink-0 bg-brand-orange text-white rounded-xl px-3 py-1.5 disabled:opacity-40 hover:bg-brand-orange-hover transition-colors"
           >
