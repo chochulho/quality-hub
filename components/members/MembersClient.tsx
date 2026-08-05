@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check, Send } from 'lucide-react'
-import { inviteMember, updateMemberRole, removeMember, updateMemberSites, resendInvite } from '@/app/(workspace)/members/actions'
+import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check, Send, KeyRound } from 'lucide-react'
+import { inviteMember, updateMemberRole, removeMember, updateMemberSites, resendInvite, resetMemberPassword } from '@/app/(workspace)/members/actions'
 
 export interface MemberRow {
   id: string
@@ -210,6 +210,7 @@ export default function MembersClient({ members, sites, canManage, currentUserId
   const [siteTarget, setSiteTarget] = useState<MemberRow | null>(null)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [resendMsg, setResendMsg] = useState<{ id: string; text: string } | null>(null)
+  const [resetMsg, setResetMsg] = useState<{ id: string; text: string } | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const siteNameMap = new Map(sites.map((s) => [s.id, s.name]))
@@ -234,6 +235,17 @@ export default function MembersClient({ members, sites, canManage, currentUserId
     const next = currentRole === 'admin' ? 'member' : 'admin'
     setPendingId(id)
     startTransition(async () => { await updateMemberRole(id, next); setPendingId(null) })
+  }
+
+  function handleResetPassword(id: string, email: string) {
+    if (!confirm(`${email}의 비밀번호를 재설정하시겠습니까?\n새 임시 비밀번호가 본인 이메일로 발송되며, 기존 비밀번호는 더 이상 사용할 수 없습니다.`)) return
+    setPendingId(id)
+    setResetMsg(null)
+    startTransition(async () => {
+      const result = await resetMemberPassword(id)
+      setPendingId(null)
+      setResetMsg({ id, text: result.error ?? result.warning ?? '새 임시 비밀번호를 이메일로 발송했습니다.' })
+    })
   }
 
   const activeCount = members.filter(m => m.status !== 'suspended').length
@@ -273,6 +285,9 @@ export default function MembersClient({ members, sites, canManage, currentUserId
                   {m.email}
                   {resendMsg?.id === m.id && (
                     <p className="text-[11px] font-normal text-muted-foreground mt-0.5">{resendMsg.text}</p>
+                  )}
+                  {resetMsg?.id === m.id && (
+                    <p className="text-[11px] font-normal text-muted-foreground mt-0.5">{resetMsg.text}</p>
                   )}
                 </td>
                 <td className="px-4 py-3.5">
@@ -337,6 +352,20 @@ export default function MembersClient({ members, sites, canManage, currentUserId
                           >
                             <MapPin className="h-3 w-3 inline mr-0.5" />
                             배정
+                          </button>
+                        )}
+                        {/* 비밀번호 재설정 */}
+                        {m.status === 'active' && (
+                          <button
+                            onClick={() => handleResetPassword(m.id, m.email)}
+                            disabled={isPending && pendingId === m.id}
+                            className="text-xs text-muted-foreground hover:text-brand-orange transition-colors border border-border rounded-full px-2.5 py-1 hover:border-brand-orange"
+                            title="비밀번호 재설정"
+                          >
+                            {isPending && pendingId === m.id
+                              ? <Loader2 className="h-3 w-3 animate-spin" />
+                              : <KeyRound className="h-3 w-3 inline mr-0.5" />}
+                            비밀번호
                           </button>
                         )}
                         {/* 역할 전환 */}

@@ -108,6 +108,79 @@ export async function inviteMember(
   return warning ? { warning } : {}
 }
 
+/** 헷갈리기 쉬운 문자(0/O, 1/l/I 등)를 제외한 임시 비밀번호 생성 */
+function generateTempPassword(length = 12): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+  const bytes = crypto.getRandomValues(new Uint8Array(length))
+  let out = ''
+  for (const b of bytes) out += chars[b % chars.length]
+  return out + '!'
+}
+
+/** 비밀번호 재설정 안내 메일 발송. 실패 시 경고 메시지를 반환 (성공이면 undefined) */
+async function sendPasswordResetEmail(email: string, tempPassword: string, orgName: string): Promise<string | undefined> {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://qmintel.com'
+  const loginUrl = `${baseUrl}/login`
+
+  try {
+    await resend.emails.send({
+      from: 'QMintel <noreply@qmintel.com>',
+      to: email,
+      subject: `[QMintel] ${orgName} 계정 비밀번호가 재설정되었습니다`,
+      html: `
+        <h2 style="color:#2B4B8C">비밀번호 재설정 안내</h2>
+        <p style="font-size:15px;color:#444">안녕하세요,<br>
+        <b>${orgName}</b> 관리자의 요청으로 계정 비밀번호가 재설정되었습니다.</p>
+        <p style="font-size:15px;color:#444;margin:20px 0">임시 비밀번호: <b style="font-size:18px;letter-spacing:1px">${tempPassword}</b></p>
+        <p style="margin:24px 0">
+          <a href="${loginUrl}" style="display:inline-block;background:#F26B3A;color:#fff;padding:12px 28px;border-radius:9999px;font-weight:600;text-decoration:none">로그인하기</a>
+        </p>
+        <p style="font-size:13px;color:#888">로그인 후 보안을 위해 비밀번호를 변경해주세요.</p>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0">
+        <p style="font-size:12px;color:#999">본인이 요청하지 않은 변경이라면 관리자에게 문의해주세요.</p>
+      `,
+    })
+    return undefined
+  } catch (err) {
+    console.error('[members] password reset email send failed', err)
+    return '비밀번호는 재설정되었지만 이메일 발송에 실패했습니다. 다시 시도해주세요.'
+  }
+}
+
+/** 관리자에 의한 멤버 비밀번호 재설정 — 새 임시 비밀번호를 생성해 본인 이메일로만 발송 (관리자에게는 노출하지 않음) */
+export async function resetMemberPassword(memberId: string): Promise<ActionResult> {
+  const auth = await requireAdminSession()
+  if (auth.error || !auth.session) return { error: auth.error }
+  const { session } = auth
+
+  const supabase = createAdminClient()
+
+  const { data: target } = await supabase
+    .from('org_members')
+    .select('role, status, user_id')
+    .eq('id', memberId)
+    .eq('org_id', session.orgId!)
+    .single()
+
+  if (!target) return { error: '멤버를 찾을 수 없습니다.' }
+  if (target.role === 'owner') return { error: 'Owner 계정은 이 기능으로 재설정할 수 없습니다.' }
+  if (target.status !== 'active' || !target.user_id) {
+    return { error: '아직 가입을 완료하지 않은 멤버입니다. 초대 재전송을 이용해주세요.' }
+  }
+
+  const { data: userData, error: getUserError } = await supabase.auth.admin.getUserById(target.user_id)
+  if (getUserError || !userData.user?.email) return { error: '계정 정보를 확인할 수 없습니다.' }
+
+  const tempPassword = generateTempPassword()
+  const { error: updateError } = await supabase.auth.admin.updateUserById(target.user_id, {
+    password: tempPassword,
+  })
+  if (updateError) return { error: '비밀번호 재설정 실패: ' + updateError.message }
+
+  const warning = await sendPasswordResetEmail(userData.user.email, tempPassword, session.orgName ?? '조직')
+  return warning ? { warning } : {}
+}
+
 /** 초대 메일 재전송 (토큰 재발급 포함) */
 export async function resendInvite(memberId: string): Promise<ActionResult> {
   const auth = await requireAdminSession()
