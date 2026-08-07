@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { SignJWT } from 'jose'
 import { TOOLS, PREMIUM_TOOL_IDS, SUPERADMIN_EMAIL, type ToolId } from '@/lib/auth/grades'
+import { TOOL_TO_SLUG } from '@/lib/sso/provisioning'
 
 // ── SSO 설정 ────────────────────────────────────────────────────
 
@@ -71,6 +72,8 @@ export async function GET(
   let memberPlanId = 'free'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let membershipRow: any = null
+  // JWT products claim + 게이팅용 — 일반 멤버만 설정, owner/admin/superadmin은 undefined(=SaaS 허용)
+  let productsClaim: string[] | undefined = undefined
 
   if (!isSuperadmin) {
     const { data: membership } = await supabase.rpc('get_my_membership')
@@ -84,6 +87,17 @@ export async function GET(
     const hasAccess = await checkToolAccess(supabase, membershipRow.org_id, memberPlanId, toolId)
     if (!hasAccess) {
       return NextResponse.redirect(new URL('/pricing', request.url))
+    }
+
+    // 멤버별 제품 권한 게이팅 (계약 §9 — qmintel이 source of truth).
+    // owner/admin은 org 전권. member는 이 도구를 grant 받아야 이동 가능.
+    if (membershipRow.member_role === 'member') {
+      const { data: granted } = await supabase.rpc('get_my_product_slugs')
+      const grantedSlugs: string[] = granted ?? []
+      productsClaim = grantedSlugs
+      if (!grantedSlugs.includes(TOOL_TO_SLUG[toolId])) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
     }
   }
 
@@ -113,6 +127,8 @@ export async function GET(
         plan: 'platinum',
         org_id: orgId,
         org_name: orgName,
+        // 멤버별 제품 사용권한 (계약 §4). owner/admin/superadmin은 생략 → 수신 측이 허용(하위호환).
+        ...(productsClaim ? { products: productsClaim } : {}),
       })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()

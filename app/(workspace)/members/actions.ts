@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { Resend } from 'resend'
 import { getSession } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { pushProvision } from '@/lib/sso/provisioning'
 
 type ActionResult = { error?: string; warning?: string }
 
@@ -266,6 +267,82 @@ export async function updateMemberSites(
   return {}
 }
 
+/**
+ * 멤버 제품 사용권한(멤버×제품 매트릭스) 업데이트.
+ * DB에 grant 상태를 저장한 뒤, 이전 상태와 diff 하여 대상 SaaS로 grant/revoke를 push 한다.
+ * (계약: docs/sso-provisioning-contract.md §9 — qmintel이 source of truth)
+ * push 실패는 DB 반영을 막지 않는다(pushProvision은 throw 하지 않고 sso_provision_log에 기록).
+ */
+export async function updateMemberProducts(
+  memberId: string,
+  slugs: string[]
+): Promise<ActionResult> {
+  const auth = await requireAdminSession()
+  if (auth.error || !auth.session) return { error: auth.error }
+  const { session } = auth
+
+  const supabase = createAdminClient()
+
+  // 대상 멤버 확인 (이메일/user_id/role)
+  const { data: target } = await supabase
+    .from('org_members')
+    .select('user_id, role, invited_email, status')
+    .eq('id', memberId)
+    .eq('org_id', session.orgId!)
+    .single()
+
+  if (!target) return { error: '멤버를 찾을 수 없습니다.' }
+
+  // 이메일 해석 (사업장 배정과 동일: user_id 있으면 auth에서, 없으면 invited_email)
+  let email = target.invited_email ?? ''
+  if (target.user_id) {
+    const { data: { user } } = await supabase.auth.admin.getUserById(target.user_id)
+    email = user?.email ?? target.invited_email ?? ''
+  }
+  if (!email) return { error: '멤버 이메일을 확인할 수 없습니다.' }
+
+  // 이전 grant 상태 조회 (diff 계산용)
+  const { data: prevRows } = await supabase.rpc('get_org_member_products', {
+    p_org_id: session.orgId,
+  })
+  const prevSlugs: string[] =
+    (prevRows as { member_id: string; slugs: string[] }[] | null)
+      ?.find((r) => r.member_id === memberId)?.slugs ?? []
+
+  // DB 반영
+  const { error } = await supabase.rpc('set_member_products', {
+    p_member_id: memberId,
+    p_slugs: slugs,
+  })
+  if (error) return { error: '제품 권한 저장 실패: ' + error.message }
+
+  revalidatePath('/members')
+
+  // diff → SaaS push
+  const nextSet = new Set(slugs)
+  const prevSet = new Set(prevSlugs)
+  const added = slugs.filter((s) => !prevSet.has(s))
+  const removed = prevSlugs.filter((s) => !nextSet.has(s))
+
+  const orgInfo = { external_org_id: session.orgId ?? undefined, name: session.orgName ?? undefined }
+  const memberInfo = {
+    email,
+    external_user_id: target.user_id ?? undefined,
+    role: (target.role === 'member' ? 'member' : 'admin') as 'member' | 'admin',
+  }
+
+  await Promise.all([
+    ...added.map((product) =>
+      pushProvision({ product, action: 'grant', org: orgInfo, member: memberInfo })
+    ),
+    ...removed.map((product) =>
+      pushProvision({ product, action: 'revoke', org: orgInfo, member: memberInfo })
+    ),
+  ])
+
+  return {}
+}
+
 /** 멤버 제거 (자기 자신 제거 불가) */
 export async function removeMember(memberId: string): Promise<ActionResult> {
   const auth = await requireAdminSession()
@@ -277,7 +354,7 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
   // owner는 제거 불가
   const { data: target } = await supabase
     .from('org_members')
-    .select('role, user_id')
+    .select('role, user_id, invited_email')
     .eq('id', memberId)
     .eq('org_id', session.orgId!)
     .single()
@@ -285,6 +362,20 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
   if (!target) return { error: '멤버를 찾을 수 없습니다.' }
   if (target.role === 'owner') return { error: 'Owner는 제거할 수 없습니다.' }
   if (target.user_id === session.id) return { error: '자기 자신은 제거할 수 없습니다.' }
+
+  // 탈퇴 push(계약 §9)를 위해 제거 전 제품 grant + 이메일 확보
+  const { data: prevRows } = await supabase.rpc('get_org_member_products', {
+    p_org_id: session.orgId,
+  })
+  const grantedSlugs: string[] =
+    (prevRows as { member_id: string; slugs: string[] }[] | null)
+      ?.find((r) => r.member_id === memberId)?.slugs ?? []
+
+  let email = target.invited_email ?? ''
+  if (target.user_id) {
+    const { data: { user } } = await supabase.auth.admin.getUserById(target.user_id)
+    email = user?.email ?? target.invited_email ?? ''
+  }
 
   const { error } = await supabase
     .from('org_members')
@@ -295,5 +386,21 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
   if (error) return { error: '제거 실패: ' + error.message }
 
   revalidatePath('/members')
+
+  // 대상 SaaS에서 이 멤버의 모든 제품 회수 (soft-delete)
+  if (email && grantedSlugs.length > 0) {
+    const orgInfo = { external_org_id: session.orgId!, name: session.orgName ?? undefined }
+    const memberInfo = {
+      email,
+      external_user_id: target.user_id ?? undefined,
+      role: (target.role === 'member' ? 'member' : 'admin') as 'member' | 'admin',
+    }
+    await Promise.all(
+      grantedSlugs.map((product) =>
+        pushProvision({ product, action: 'revoke', org: orgInfo, member: memberInfo })
+      )
+    )
+  }
+
   return {}
 }

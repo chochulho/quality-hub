@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { Users } from 'lucide-react'
 import { getSession } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
-import MembersClient, { type MemberRow } from '@/components/members/MembersClient'
+import { ALL_TOOL_IDS, TOOLS, isToolUnlocked, type ToolId } from '@/lib/auth/grades'
+import { TOOL_TO_SLUG } from '@/lib/sso/provisioning'
+import MembersClient, { type MemberRow, type ProductOption } from '@/components/members/MembersClient'
 
 export const metadata = { title: '인원 관리' }
 
@@ -16,7 +18,7 @@ export default async function MembersPage() {
   const supabase = createAdminClient()
 
   // 병렬 조회
-  const [rawMembersRes, sitesRes, memberSitesRes, planRes] = await Promise.all([
+  const [rawMembersRes, sitesRes, memberSitesRes, memberProductsRes, selectedToolsRes, planRes] = await Promise.all([
     supabase
       .from('org_members')
       .select('id, user_id, role, invited_email, status, created_at')
@@ -28,6 +30,8 @@ export default async function MembersPage() {
       .eq('org_id', session.orgId)
       .order('is_primary', { ascending: false }),
     supabase.rpc('get_org_member_sites', { p_org_id: session.orgId }),
+    supabase.rpc('get_org_member_products', { p_org_id: session.orgId }),
+    supabase.from('org_selected_tools').select('tool_key').eq('org_id', session.orgId),
     supabase.from('plans').select('max_members').eq('id', session.planId).single(),
   ])
 
@@ -38,6 +42,22 @@ export default async function MembersPage() {
       r.site_ids ?? [],
     ])
   )
+
+  // 멤버별 제품 grant 매핑
+  const productMap = new Map<string, string[]>(
+    (memberProductsRes.data ?? []).map((r: { member_id: string; slugs: string[] }) => [
+      r.member_id,
+      r.slugs ?? [],
+    ])
+  )
+
+  // org 플랜에서 사용 가능한 도구 → 제품 매트릭스 컬럼
+  const selectedTools = (selectedToolsRes.data ?? []).map(
+    (r: { tool_key: string }) => r.tool_key
+  ) as ToolId[]
+  const productOptions: ProductOption[] = ALL_TOOL_IDS
+    .filter((toolId) => isToolUnlocked(session.planId, toolId, selectedTools))
+    .map((toolId) => ({ slug: TOOL_TO_SLUG[toolId], name: TOOLS[toolId].name }))
 
   // 각 멤버의 이메일 보강
   const members: MemberRow[] = await Promise.all(
@@ -54,6 +74,7 @@ export default async function MembersPage() {
         status: m.status as MemberRow['status'],
         createdAt: m.created_at,
         siteIds: siteMap.get(m.id) ?? [],
+        productSlugs: productMap.get(m.id) ?? [],
       }
     })
   )
@@ -85,6 +106,7 @@ export default async function MembersPage() {
       <MembersClient
         members={members}
         sites={sites}
+        productOptions={productOptions}
         canManage={canManage}
         currentUserId={session.id}
         maxMembers={maxMembers}

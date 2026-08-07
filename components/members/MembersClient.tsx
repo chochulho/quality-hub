@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check, Send, KeyRound } from 'lucide-react'
-import { inviteMember, updateMemberRole, removeMember, updateMemberSites, resendInvite, resetMemberPassword } from '@/app/(workspace)/members/actions'
+import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check, Send, KeyRound, Package } from 'lucide-react'
+import { inviteMember, updateMemberRole, removeMember, updateMemberSites, updateMemberProducts, resendInvite, resetMemberPassword } from '@/app/(workspace)/members/actions'
 
 export interface MemberRow {
   id: string
@@ -11,13 +11,16 @@ export interface MemberRow {
   status: 'active' | 'invited' | 'suspended'
   createdAt: string
   siteIds: string[]
+  productSlugs: string[]
 }
 
 interface SiteOption { id: string; name: string }
+export interface ProductOption { slug: string; name: string }
 
 interface Props {
   members: MemberRow[]
   sites: SiteOption[]
+  productOptions: ProductOption[]
   canManage: boolean
   currentUserId: string
   maxMembers: number
@@ -203,17 +206,110 @@ function SiteAssignModal({ member, sites, onClose }: {
   )
 }
 
+// ── 제품 접근 배정 모달 ──────────────────────────────────────────
+
+function ProductAssignModal({ member, productOptions, onClose }: {
+  member: MemberRow
+  productOptions: ProductOption[]
+  onClose: () => void
+}) {
+  const [selected, setSelected] = useState<Set<string>>(new Set(member.productSlugs))
+  const [error, setError] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  function toggle(slug: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(slug)) next.delete(slug)
+      else next.add(slug)
+      return next
+    })
+  }
+
+  function handleSave() {
+    setError('')
+    startTransition(async () => {
+      const result = await updateMemberProducts(member.id, Array.from(selected))
+      if (result.error) setError(result.error)
+      else onClose()
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-7">
+        <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+          <X className="h-5 w-5" />
+        </button>
+        <div className="flex items-center gap-2 mb-1">
+          <Package className="h-4 w-4 text-brand-orange" />
+          <h2 className="text-lg font-extrabold text-brand-navy">제품 접근</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-5">
+          <span className="font-medium text-foreground">{member.email}</span>님이 사용할 제품을 선택하세요.
+          저장 시 각 제품에 즉시 반영됩니다.
+        </p>
+
+        {productOptions.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">
+            현재 플랜에서 사용 가능한 제품이 없습니다.
+          </p>
+        ) : (
+          <div className="space-y-2 mb-6">
+            {productOptions.map((product) => {
+              const checked = selected.has(product.slug)
+              return (
+                <button
+                  key={product.slug}
+                  onClick={() => toggle(product.slug)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${
+                    checked ? 'border-brand-orange bg-brand-orange/5' : 'border-border hover:border-brand-navy/30'
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                    checked ? 'bg-brand-orange border-brand-orange' : 'border-border'
+                  }`}>
+                    {checked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                  </div>
+                  <span className={`text-sm font-medium ${checked ? 'text-brand-orange' : 'text-foreground'}`}>
+                    {product.name}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {error && <p className="text-xs text-destructive mb-3">{error}</p>}
+
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 rounded-full border border-border px-4 py-3 text-sm font-semibold hover:bg-muted transition-colors">취소</button>
+          <button onClick={handleSave} disabled={isPending}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-brand-navy text-white px-4 py-3 text-sm font-semibold hover:bg-brand-navy-dark transition-all disabled:opacity-50"
+          >
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            저장
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── 메인 컴포넌트 ────────────────────────────────────────────────
 
-export default function MembersClient({ members, sites, canManage, currentUserId, maxMembers }: Props) {
+export default function MembersClient({ members, sites, productOptions, canManage, currentUserId, maxMembers }: Props) {
   const [showInvite, setShowInvite] = useState(false)
   const [siteTarget, setSiteTarget] = useState<MemberRow | null>(null)
+  const [productTarget, setProductTarget] = useState<MemberRow | null>(null)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [resendMsg, setResendMsg] = useState<{ id: string; text: string } | null>(null)
   const [resetMsg, setResetMsg] = useState<{ id: string; text: string } | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const siteNameMap = new Map(sites.map((s) => [s.id, s.name]))
+  const productNameMap = new Map(productOptions.map((p) => [p.slug, p.name]))
 
   function handleRemove(id: string) {
     if (!confirm('이 멤버를 제거하시겠습니까?')) return
@@ -274,6 +370,7 @@ export default function MembersClient({ members, sites, canManage, currentUserId
               <th className="text-left px-4 py-3 font-semibold">역할</th>
               <th className="text-left px-4 py-3 font-semibold">상태</th>
               <th className="text-left px-4 py-3 font-semibold">사업장 접근</th>
+              <th className="text-left px-4 py-3 font-semibold">제품 접근</th>
               <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">추가일</th>
               {canManage && <th className="px-4 py-3 font-semibold" />}
             </tr>
@@ -322,6 +419,25 @@ export default function MembersClient({ members, sites, canManage, currentUserId
                   )}
                 </td>
 
+                {/* 제품 접근 */}
+                <td className="px-4 py-3.5">
+                  {m.role === 'owner' || m.role === 'admin' ? (
+                    <span className="text-xs font-medium text-brand-navy bg-brand-navy/5 rounded-full px-2.5 py-0.5">
+                      전체 ({productOptions.length}개)
+                    </span>
+                  ) : m.productSlugs.length === 0 ? (
+                    <span className="text-xs text-muted-foreground">미배정</span>
+                  ) : (
+                    <div className="flex flex-wrap gap-1">
+                      {m.productSlugs.map((slug) => (
+                        <span key={slug} className="text-[11px] font-medium bg-muted text-foreground rounded-full px-2 py-0.5">
+                          {productNameMap.get(slug) ?? slug}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </td>
+
                 <td className="px-4 py-3.5 text-muted-foreground hidden sm:table-cell">
                   {new Date(m.createdAt).toLocaleDateString('ko-KR')}
                 </td>
@@ -352,6 +468,17 @@ export default function MembersClient({ members, sites, canManage, currentUserId
                           >
                             <MapPin className="h-3 w-3 inline mr-0.5" />
                             배정
+                          </button>
+                        )}
+                        {/* 제품 접근 배정 (member만) */}
+                        {m.role === 'member' && productOptions.length > 0 && (
+                          <button
+                            onClick={() => setProductTarget(m)}
+                            className="text-xs text-muted-foreground hover:text-brand-orange transition-colors border border-border rounded-full px-2.5 py-1 hover:border-brand-orange"
+                            title="제품 접근 배정"
+                          >
+                            <Package className="h-3 w-3 inline mr-0.5" />
+                            제품
                           </button>
                         )}
                         {/* 비밀번호 재설정 */}
@@ -406,6 +533,9 @@ export default function MembersClient({ members, sites, canManage, currentUserId
       )}
       {siteTarget && (
         <SiteAssignModal member={siteTarget} sites={sites} onClose={() => setSiteTarget(null)} />
+      )}
+      {productTarget && (
+        <ProductAssignModal member={productTarget} productOptions={productOptions} onClose={() => setProductTarget(null)} />
       )}
     </>
   )
