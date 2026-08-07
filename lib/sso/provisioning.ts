@@ -37,10 +37,16 @@ export const PROVISION_TARGETS: Record<string, ProvisionTarget | undefined> = {
     url: 'https://change-manager-self.vercel.app/api/sso/provision',
     secretEnv: 'SSO_4M_SECRET',
   },
-  // ⏳ 각 SaaS 수신부(/api/sso/provision) 이식 후 주석 해제
-  // 'gauge-manager': { url: 'https://gaugemanager.com/api/sso/provision', secretEnv: 'SSO_GAUGE_SECRET' },
-  // 'apqp-manager':  { url: 'https://apqpmanager.com/api/sso/provision',  secretEnv: 'SSO_FMEA_SECRET'  },
-  // 'auditsay':      { url: 'https://auditsay.com/api/sso/provision',     secretEnv: 'SSO_AUDITSAY_SECRET' },
+  'gauge-manager': {
+    url: 'https://gaugemanager.com/api/sso/provision',
+    secretEnv: 'SSO_GAUGE_SECRET',
+  },
+  'apqp-manager': {
+    url: 'https://apqpmanager.com/api/sso/provision',
+    secretEnv: 'SSO_FMEA_SECRET',
+  },
+  // ⏳ auditsay는 스택이 달라(공유 Supabase + magic-link) 별도 설계 후 활성
+  // 'auditsay': { url: 'https://auditsay.com/api/sso/provision', secretEnv: 'SSO_AUDITSAY_SECRET' },
 }
 
 // 재시도 없이 즉시 실패로 판단할 상태코드 (계약 §3: 4xx는 재시도 금지)
