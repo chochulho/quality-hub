@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check, Send, KeyRound, Package } from 'lucide-react'
-import { inviteMember, updateMemberRole, removeMember, updateMemberSites, updateMemberProducts, resendInvite, resetMemberPassword } from '@/app/(workspace)/members/actions'
+import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check, Send, KeyRound, Package, RefreshCw } from 'lucide-react'
+import { inviteMember, updateMemberRole, removeMember, updateMemberSites, updateMemberProducts, resendInvite, resetMemberPassword, resyncProvisioning } from '@/app/(workspace)/members/actions'
 
 export interface MemberRow {
   id: string
@@ -306,7 +306,9 @@ export default function MembersClient({ members, sites, productOptions, canManag
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [resendMsg, setResendMsg] = useState<{ id: string; text: string } | null>(null)
   const [resetMsg, setResetMsg] = useState<{ id: string; text: string } | null>(null)
+  const [syncMsg, setSyncMsg] = useState('')
   const [isPending, startTransition] = useTransition()
+  const [isSyncing, startSync] = useTransition()
 
   const siteNameMap = new Map(sites.map((s) => [s.id, s.name]))
   const productNameMap = new Map(productOptions.map((p) => [p.slug, p.name]))
@@ -333,6 +335,15 @@ export default function MembersClient({ members, sites, productOptions, canManag
     startTransition(async () => { await updateMemberRole(id, next); setPendingId(null) })
   }
 
+  function handleResync() {
+    if (!confirm('현재 제품 권한 상태를 모든 연동 제품(4M · Gauge · APQP)의 멤버 명단에 다시 반영합니다.\n\n평소엔 권한을 켜고 끌 때만 반영되므로, 이미 권한이 있으나 명단에서 누락된 멤버(특히 관리자)를 한 번에 메꾸는 작업입니다. 계속할까요?')) return
+    setSyncMsg('')
+    startSync(async () => {
+      const result = await resyncProvisioning()
+      setSyncMsg(result.error ?? `재동기화 완료 — 멤버 ${result.members ?? 0}명 · grant ${result.grants ?? 0}건 전송`)
+    })
+  }
+
   function handleResetPassword(id: string, email: string) {
     if (!confirm(`${email}의 비밀번호를 재설정하시겠습니까?\n새 임시 비밀번호가 본인 이메일로 발송되며, 기존 비밀번호는 더 이상 사용할 수 없습니다.`)) return
     setPendingId(id)
@@ -349,17 +360,30 @@ export default function MembersClient({ members, sites, productOptions, canManag
   return (
     <>
       {canManage && (
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{activeCount}</span>
-            {maxMembers > 0 ? ` / ${maxMembers}명` : '명'} 이용 중
-          </p>
-          <button onClick={() => setShowInvite(true)}
-            className="inline-flex items-center gap-2 bg-brand-orange text-white rounded-full px-5 py-2.5 text-sm font-semibold hover:bg-brand-orange-hover transition-all hover:-translate-y-0.5 duration-200"
-          >
-            <UserPlus className="h-4 w-4" />팀원 초대
-          </button>
-        </div>
+        <>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{activeCount}</span>
+              {maxMembers > 0 ? ` / ${maxMembers}명` : '명'} 이용 중
+            </p>
+            <div className="flex items-center gap-2">
+              <button onClick={handleResync} disabled={isSyncing}
+                className="inline-flex items-center gap-2 border border-border text-muted-foreground rounded-full px-4 py-2.5 text-sm font-semibold hover:border-brand-navy hover:text-brand-navy transition-all disabled:opacity-50"
+                title="현재 제품 권한을 연동 제품 명단에 다시 반영"
+              >
+                {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                재동기화
+              </button>
+              <button onClick={() => setShowInvite(true)}
+                className="inline-flex items-center gap-2 bg-brand-orange text-white rounded-full px-5 py-2.5 text-sm font-semibold hover:bg-brand-orange-hover transition-all hover:-translate-y-0.5 duration-200"
+              >
+                <UserPlus className="h-4 w-4" />팀원 초대
+              </button>
+            </div>
+          </div>
+          {syncMsg && <p className="text-xs text-brand-navy mb-4">{syncMsg}</p>}
+          {!syncMsg && <div className="mb-4" />}
+        </>
       )}
 
       <div className="rounded-2xl border border-border overflow-hidden">

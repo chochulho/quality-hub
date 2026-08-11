@@ -4,9 +4,59 @@ import { revalidatePath } from 'next/cache'
 import { Resend } from 'resend'
 import { getSession } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { pushProvision } from '@/lib/sso/provisioning'
+import { pushProvision, TOOL_TO_SLUG } from '@/lib/sso/provisioning'
+import { ALL_TOOL_IDS, isToolUnlocked, type ToolId } from '@/lib/auth/grades'
 
 type ActionResult = { error?: string; warning?: string }
+
+type AdminClient = ReturnType<typeof createAdminClient>
+
+/**
+ * org 플랜에서 잠금 해제된 제품 슬러그 목록.
+ * members/page.tsx의 productOptions와 동일 규칙 — owner/admin의 "전체" 실효 권한 근거.
+ */
+async function getOrgUnlockedSlugs(
+  supabase: AdminClient,
+  orgId: string,
+  planId: string,
+): Promise<string[]> {
+  const { data: selected } = await supabase
+    .from('org_selected_tools')
+    .select('tool_key')
+    .eq('org_id', orgId)
+  const selectedTools = (selected ?? []).map((r: { tool_key: string }) => r.tool_key) as ToolId[]
+  return ALL_TOOL_IDS
+    .filter((toolId) => isToolUnlocked(planId, toolId, selectedTools))
+    .map((toolId) => TOOL_TO_SLUG[toolId])
+}
+
+/**
+ * 멤버의 실효 제품 권한.
+ * - owner/admin: org 전권 → 잠금 해제된 전체 제품(=UI "전체" 표시). member_products 행 없음.
+ * - member: org_member_products에 명시 grant된 제품만.
+ */
+function effectiveSlugs(role: string, grantedSlugs: string[], allUnlockedSlugs: string[]): string[] {
+  return role === 'member' ? grantedSlugs : allUnlockedSlugs
+}
+
+/** 멤버 이메일 해석 (user_id 있으면 auth에서, 없으면 invited_email) */
+async function resolveMemberEmail(
+  supabase: AdminClient,
+  member: { user_id: string | null; invited_email: string | null },
+): Promise<string> {
+  if (member.user_id) {
+    const { data: { user } } = await supabase.auth.admin.getUserById(member.user_id)
+    return user?.email ?? member.invited_email ?? ''
+  }
+  return member.invited_email ?? ''
+}
+
+/** 동시 실행 수를 제한해 배치로 실행 (수신 측 과부하·소켓 고갈 방지) */
+async function runBatched(tasks: (() => Promise<unknown>)[], size = 8): Promise<void> {
+  for (let i = 0; i < tasks.length; i += size) {
+    await Promise.all(tasks.slice(i, i + size).map((t) => t()))
+  }
+}
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -215,21 +265,29 @@ export async function resendInvite(memberId: string): Promise<ActionResult> {
   return warning ? { warning } : {}
 }
 
-/** 멤버 역할 변경 */
+/**
+ * 멤버 역할 변경.
+ * 역할이 실효 제품 권한을 바꾸므로(admin=전권, member=명시 grant) 변경을 대상 SaaS로 전파한다.
+ * - 새 권한집합 전체를 grant(멱등) → 유지되는 제품도 새 role로 재전송해 수신 측 관리자 승격 반영.
+ * - 잃은 제품은 revoke(soft-delete).
+ * 한계: 수신 측 grant는 승격만 하고 강등은 안 함(계약 §5·조직 생성자 보호) — admin→member 강등 시
+ *       "유지되는 제품"의 관리자 표시는 SaaS에 남을 수 있다.
+ */
 export async function updateMemberRole(
   memberId: string,
   newRole: 'admin' | 'member'
 ): Promise<ActionResult> {
   const auth = await requireAdminSession()
   if (auth.error || !auth.session) return { error: auth.error }
+  const { session } = auth
 
   // owner 역할은 변경 불가
   const supabase = createAdminClient()
   const { data: target } = await supabase
     .from('org_members')
-    .select('role')
+    .select('role, user_id, invited_email')
     .eq('id', memberId)
-    .eq('org_id', auth.session.orgId!)
+    .eq('org_id', session.orgId!)
     .single()
 
   if (!target) return { error: '멤버를 찾을 수 없습니다.' }
@@ -239,11 +297,42 @@ export async function updateMemberRole(
     .from('org_members')
     .update({ role: newRole })
     .eq('id', memberId)
-    .eq('org_id', auth.session.orgId!)
+    .eq('org_id', session.orgId!)
 
   if (error) return { error: '역할 변경 실패: ' + error.message }
 
   revalidatePath('/members')
+
+  // 역할 변경 → 실효 제품 권한 diff를 대상 SaaS로 push (계약 §9)
+  const allUnlockedSlugs = await getOrgUnlockedSlugs(supabase, session.orgId!, session.planId)
+  const { data: prevRows } = await supabase.rpc('get_org_member_products', { p_org_id: session.orgId })
+  const grantedSlugs: string[] =
+    (prevRows as { member_id: string; slugs: string[] }[] | null)
+      ?.find((r) => r.member_id === memberId)?.slugs ?? []
+
+  const oldEntitled = effectiveSlugs(target.role, grantedSlugs, allUnlockedSlugs)
+  const newEntitled = effectiveSlugs(newRole, grantedSlugs, allUnlockedSlugs)
+  const newSet = new Set(newEntitled)
+  const toRevoke = oldEntitled.filter((s) => !newSet.has(s))
+
+  const email = await resolveMemberEmail(supabase, target)
+  if (email) {
+    const orgInfo = { external_org_id: session.orgId ?? undefined, name: session.orgName ?? undefined }
+    const memberInfo = {
+      email,
+      external_user_id: target.user_id ?? undefined,
+      role: newRole as 'member' | 'admin',
+    }
+    await Promise.all([
+      ...newEntitled.map((product) =>
+        pushProvision({ product, action: 'grant', org: orgInfo, member: memberInfo })
+      ),
+      ...toRevoke.map((product) =>
+        pushProvision({ product, action: 'revoke', org: orgInfo, member: memberInfo })
+      ),
+    ])
+  }
+
   return {}
 }
 
@@ -403,4 +492,63 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
   }
 
   return {}
+}
+
+/**
+ * 전량 재동기화 — 조직의 모든 멤버를 현재 제품 권한 상태 그대로 대상 SaaS로 다시 grant push 한다.
+ * 평소 프로비저닝은 "변경분(diff)"에만 발신되므로, 수신부가 나중에 붙은 SaaS나 과거에 skip된
+ * grant(수신부 미준비/시크릿 미설정 시점)를 한 번에 메꾸기 위한 관리자용 배치.
+ * - owner/admin: org에서 잠금 해제된 전체 제품 기준 grant (member_products 행이 없어 diff로는 안 나감).
+ * - member: org_member_products에 명시된 제품만 grant.
+ * - suspended 멤버는 제외. grant는 멱등이라 이미 반영된 멤버는 그대로 유지된다.
+ * pushProvision은 throw 하지 않으므로(수신부 없음/실패는 sso_provision_log에 기록) 부분 실패해도 계속 진행.
+ */
+export async function resyncProvisioning(): Promise<ActionResult & { members?: number; grants?: number }> {
+  const auth = await requireAdminSession()
+  if (auth.error || !auth.session) return { error: auth.error }
+  const { session } = auth
+
+  const supabase = createAdminClient()
+
+  const allUnlockedSlugs = await getOrgUnlockedSlugs(supabase, session.orgId!, session.planId)
+
+  const { data: rawMembers } = await supabase
+    .from('org_members')
+    .select('id, user_id, role, invited_email, status')
+    .eq('org_id', session.orgId!)
+
+  const { data: prodRows } = await supabase.rpc('get_org_member_products', { p_org_id: session.orgId })
+  const grantMap = new Map<string, string[]>(
+    (prodRows as { member_id: string; slugs: string[] }[] | null)
+      ?.map((r) => [r.member_id, r.slugs ?? []]) ?? []
+  )
+
+  const orgInfo = { external_org_id: session.orgId ?? undefined, name: session.orgName ?? undefined }
+
+  const tasks: (() => Promise<unknown>)[] = []
+  let memberCount = 0
+
+  for (const m of rawMembers ?? []) {
+    if (m.status === 'suspended') continue
+
+    const slugs = effectiveSlugs(m.role, grantMap.get(m.id) ?? [], allUnlockedSlugs)
+    if (slugs.length === 0) continue
+
+    const email = await resolveMemberEmail(supabase, m)
+    if (!email) continue
+
+    memberCount++
+    const memberInfo = {
+      email,
+      external_user_id: m.user_id ?? undefined,
+      role: (m.role === 'member' ? 'member' : 'admin') as 'member' | 'admin',
+    }
+    for (const product of slugs) {
+      tasks.push(() => pushProvision({ product, action: 'grant', org: orgInfo, member: memberInfo }))
+    }
+  }
+
+  await runBatched(tasks)
+  revalidatePath('/members')
+  return { members: memberCount, grants: tasks.length }
 }
