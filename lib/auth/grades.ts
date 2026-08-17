@@ -140,9 +140,38 @@ export interface UpcomingToolDef {
   color: string
 }
 
-// 경영관리(Management)는 자매 SaaS가 아니라 quality-hub 내부 워크스페이스
-// 기능(/management)으로 만들기로 방향 전환 — 여기서 제거하고 WorkspaceHeader
-// 내비게이션으로 노출한다.
+// ── 내부 기능 (자매 SaaS 아님, ToolGrid에는 함께 노출) ──────────────
+// 별도 도메인 SaaS가 아니라 quality-hub 자체에 실제로 존재하는 기능.
+// TOOLS와 달리 plan/tool_entitlements 대상이 아니라 로그인 멤버 누구나
+// href(내부 라우트)로 바로 이동 가능 — SSO/외부 링크(target=_blank) 없음.
+export interface InternalFeatureDef {
+  id: string
+  name: string
+  tagline: string
+  description: string
+  features: string[]
+  href: string
+  color: string
+}
+
+export const INTERNAL_FEATURES: InternalFeatureDef[] = [
+  {
+    id: 'management',
+    name: 'Management',
+    tagline: '경영관리',
+    description:
+      'KPI/BSC, 경영검토, 부서별 리스크 분석, 비상계획, TFT활동, 회의를 한 곳에서 관리합니다.',
+    features: [
+      'KPI/BSC 월별 목표·실적 관리',
+      '경영검토 (IATF 16949 9.3 요구사항)',
+      '부서별 리스크 분석 및 재평가',
+      '비상계획 시나리오·훈련 실적 관리',
+    ],
+    href: '/management',
+    color: 'bg-teal-700',
+  },
+]
+
 export const UPCOMING_TOOLS: UpcomingToolDef[] = [
   {
     id: 'supply-chain-manager',

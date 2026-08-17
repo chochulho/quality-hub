@@ -1,5 +1,6 @@
-import { ExternalLink } from "lucide-react";
-import { ALL_TOOL_IDS, TOOLS, UPCOMING_TOOLS } from "@/lib/auth/grades";
+import Link from "next/link";
+import { ExternalLink, ArrowRight } from "lucide-react";
+import { ALL_TOOL_IDS, TOOLS, INTERNAL_FEATURES, UPCOMING_TOOLS } from "@/lib/auth/grades";
 
 export default function ToolGrid() {
   return (
@@ -51,6 +52,37 @@ export default function ToolGrid() {
               </div>
             );
           })}
+          {INTERNAL_FEATURES.map((feature) => (
+            <div
+              key={feature.id}
+              className="bg-white border border-border rounded-3xl overflow-hidden hover:border-brand-navy transition-colors duration-200 group"
+            >
+              <div className={`${feature.color} px-6 py-5`}>
+                <p className="text-xs font-medium text-white/70 mb-1">{feature.tagline}</p>
+                <h3 className="text-xl font-bold text-white">{feature.name}</h3>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                  {feature.description}
+                </p>
+                <ul className="space-y-1.5 mb-6">
+                  {feature.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-foreground">
+                      <span className="h-1.5 w-1.5 rounded-full bg-brand-orange shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={feature.href}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-navy hover:text-brand-orange transition-colors"
+                >
+                  {feature.name} 바로가기
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </div>
+          ))}
           {UPCOMING_TOOLS.map((tool) => (
             <div
               key={tool.id}
