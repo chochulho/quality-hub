@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getLearnPosts, getBlogPosts } from "@/lib/content";
 
-const BASE_URL = "https://quality-hub.vercel.app";
+const BASE_URL = "https://qmintel.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const learnPosts = getLearnPosts();

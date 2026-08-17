@@ -8,6 +8,13 @@ import { ko } from "date-fns/locale";
 export const metadata: Metadata = {
   title: "블로그",
   description: "품질 실무, IATF 16949, 품질기술사 시험에 관한 글을 씁니다.",
+  alternates: { canonical: "/blog" },
+  openGraph: {
+    title: "블로그 | QMintel",
+    description: "품질 실무, IATF 16949, 품질기술사 시험에 관한 글을 씁니다.",
+    url: "/blog",
+    type: "website",
+  },
 };
 
 const categoryColors: Record<string, string> = {

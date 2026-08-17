@@ -21,9 +21,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const post = getBlogPost(slug);
   if (!post) return {};
+  const { frontmatter } = post;
+  const url = `/blog/${slug}`;
   return {
-    title: post.frontmatter.title,
-    description: post.frontmatter.description,
+    title: frontmatter.title,
+    description: frontmatter.description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: frontmatter.title,
+      description: frontmatter.description,
+      url,
+      type: "article",
+      publishedTime: frontmatter.date,
+      tags: frontmatter.tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: frontmatter.title,
+      description: frontmatter.description,
+    },
   };
 }
 
@@ -42,8 +58,30 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   const readingTime = Math.max(1, Math.ceil(content.split(/\s+/).length / 200));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: frontmatter.title,
+    description: frontmatter.description,
+    datePublished: frontmatter.date,
+    dateModified: frontmatter.date,
+    author: { "@type": "Organization", name: "QMintel" },
+    publisher: { "@type": "Organization", name: "QMintel" },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://qmintel.com/blog/${slug}`,
+    },
+    ...(frontmatter.tags && frontmatter.tags.length > 0
+      ? { keywords: frontmatter.tags.join(", ") }
+      : {}),
+  };
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-16 md:py-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Back */}
       <Link
         href="/blog"
