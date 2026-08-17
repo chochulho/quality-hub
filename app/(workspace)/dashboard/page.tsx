@@ -213,6 +213,11 @@ export default async function DashboardPage() {
             title: '품질 학습 위키',
             desc: 'SPC · FMEA · IATF 아티클',
           },
+          {
+            href: '/management',
+            title: '경영관리',
+            desc: 'KPI/BSC · 경영검토 · 리스크분석',
+          },
         ].map((item) => (
           <Link
             key={item.href}
