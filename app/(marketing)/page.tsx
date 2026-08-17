@@ -33,10 +33,10 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
+      <ToolGrid />
       <Hero />
       <TrustCards />
       <FreeToolsSection />
-      <ToolGrid />
       <NonAutomotiveBanner />
       <LearnPreview />
       <NewFactoryBanner />
