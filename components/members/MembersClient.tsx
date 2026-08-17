@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check, Send, KeyRound, Package, RefreshCw } from 'lucide-react'
-import { inviteMember, updateMemberRole, removeMember, updateMemberSites, updateMemberProducts, resendInvite, resetMemberPassword, resyncProvisioning } from '@/app/(workspace)/members/actions'
+import { UserPlus, Trash2, ShieldCheck, Shield, Loader2, X, MapPin, Check, Send, KeyRound, Package, RefreshCw, Briefcase, Pencil } from 'lucide-react'
+import { inviteMember, updateMemberRole, removeMember, updateMemberSites, updateMemberProducts, updateMemberDepartment, resendInvite, resetMemberPassword, resyncProvisioning } from '@/app/(workspace)/members/actions'
 
 export interface MemberRow {
   id: string
@@ -10,6 +10,7 @@ export interface MemberRow {
   role: 'owner' | 'admin' | 'member'
   status: 'active' | 'invited' | 'suspended'
   createdAt: string
+  department: string | null
   siteIds: string[]
   productSlugs: string[]
 }
@@ -111,6 +112,70 @@ function InviteModal({ onClose, currentCount, maxMembers }: {
           >
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
             초대 보내기
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 부서 편집 모달 ───────────────────────────────────────────────
+
+function DepartmentModal({ member, departmentOptions, onClose }: {
+  member: MemberRow
+  departmentOptions: string[]
+  onClose: () => void
+}) {
+  const [value, setValue] = useState(member.department ?? '')
+  const [error, setError] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  function handleSave() {
+    setError('')
+    startTransition(async () => {
+      const result = await updateMemberDepartment(member.id, value)
+      if (result.error) setError(result.error)
+      else onClose()
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-7">
+        <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+          <X className="h-5 w-5" />
+        </button>
+        <div className="flex items-center gap-2 mb-1">
+          <Briefcase className="h-4 w-4 text-brand-orange" />
+          <h2 className="text-lg font-extrabold text-brand-navy">부서</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-5">
+          <span className="font-medium text-foreground">{member.email}</span>님의 소속 부서를 입력하세요.
+          경영관리 모듈에서 부서별 항목 편집 권한 판단에 사용됩니다.
+        </p>
+
+        <input
+          type="text"
+          list="department-options"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="예: 품질팀"
+          className="w-full rounded-xl border border-border px-4 py-2.5 text-sm outline-none focus:border-brand-navy transition-colors mb-6"
+        />
+        <datalist id="department-options">
+          {departmentOptions.map((d) => <option key={d} value={d} />)}
+        </datalist>
+
+        {error && <p className="text-xs text-destructive mb-3">{error}</p>}
+
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 rounded-full border border-border px-4 py-3 text-sm font-semibold hover:bg-muted transition-colors">취소</button>
+          <button onClick={handleSave} disabled={isPending}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-brand-navy text-white px-4 py-3 text-sm font-semibold hover:bg-brand-navy-dark transition-all disabled:opacity-50"
+          >
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            저장
           </button>
         </div>
       </div>
@@ -303,6 +368,7 @@ export default function MembersClient({ members, sites, productOptions, canManag
   const [showInvite, setShowInvite] = useState(false)
   const [siteTarget, setSiteTarget] = useState<MemberRow | null>(null)
   const [productTarget, setProductTarget] = useState<MemberRow | null>(null)
+  const [departmentTarget, setDepartmentTarget] = useState<MemberRow | null>(null)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [resendMsg, setResendMsg] = useState<{ id: string; text: string } | null>(null)
   const [resetMsg, setResetMsg] = useState<{ id: string; text: string } | null>(null)
@@ -312,6 +378,9 @@ export default function MembersClient({ members, sites, productOptions, canManag
 
   const siteNameMap = new Map(sites.map((s) => [s.id, s.name]))
   const productNameMap = new Map(productOptions.map((p) => [p.slug, p.name]))
+  const departmentOptions = Array.from(
+    new Set(members.map((m) => m.department).filter((d): d is string => !!d))
+  ).sort()
 
   function handleRemove(id: string) {
     if (!confirm('이 멤버를 제거하시겠습니까?')) return
@@ -393,6 +462,7 @@ export default function MembersClient({ members, sites, productOptions, canManag
               <th className="text-left px-5 py-3 font-semibold">이메일</th>
               <th className="text-left px-4 py-3 font-semibold">역할</th>
               <th className="text-left px-4 py-3 font-semibold">상태</th>
+              <th className="text-left px-4 py-3 font-semibold">부서</th>
               <th className="text-left px-4 py-3 font-semibold">사업장 접근</th>
               <th className="text-left px-4 py-3 font-semibold">제품 접근</th>
               <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">추가일</th>
@@ -422,6 +492,22 @@ export default function MembersClient({ members, sites, productOptions, canManag
                   <span className={`inline-block text-[11px] font-semibold rounded-full px-2.5 py-0.5 ${STATUS_STYLE[m.status]}`}>
                     {STATUS_LABEL[m.status]}
                   </span>
+                </td>
+
+                {/* 부서 */}
+                <td className="px-4 py-3.5">
+                  {canManage ? (
+                    <button
+                      onClick={() => setDepartmentTarget(m)}
+                      className="inline-flex items-center gap-1 text-xs text-foreground hover:text-brand-orange transition-colors"
+                      title="부서 편집"
+                    >
+                      {m.department ?? <span className="text-muted-foreground">미지정</span>}
+                      <Pencil className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                  ) : (
+                    <span className="text-xs text-foreground">{m.department ?? '—'}</span>
+                  )}
                 </td>
 
                 {/* 사업장 접근 */}
@@ -560,6 +646,9 @@ export default function MembersClient({ members, sites, productOptions, canManag
       )}
       {productTarget && (
         <ProductAssignModal member={productTarget} productOptions={productOptions} onClose={() => setProductTarget(null)} />
+      )}
+      {departmentTarget && (
+        <DepartmentModal member={departmentTarget} departmentOptions={departmentOptions} onClose={() => setDepartmentTarget(null)} />
       )}
     </>
   )

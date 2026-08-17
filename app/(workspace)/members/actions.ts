@@ -336,6 +336,28 @@ export async function updateMemberRole(
   return {}
 }
 
+/** 멤버 부서(자유 텍스트) 변경 — 경영관리 모듈의 부서 소유권 판단 기준 */
+export async function updateMemberDepartment(
+  memberId: string,
+  department: string
+): Promise<ActionResult> {
+  const auth = await requireAdminSession()
+  if (auth.error || !auth.session) return { error: auth.error }
+  const { session } = auth
+
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('org_members')
+    .update({ department: department.trim() || null })
+    .eq('id', memberId)
+    .eq('org_id', session.orgId!)
+
+  if (error) return { error: '부서 저장 실패: ' + error.message }
+
+  revalidatePath('/members')
+  return {}
+}
+
 /** 멤버 사업장 배정 업데이트 */
 export async function updateMemberSites(
   memberId: string,

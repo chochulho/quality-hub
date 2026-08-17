@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   LayoutDashboard, BookOpen, Calculator, Users, Building2,
-  CreditCard, BookMarked, Shield, Settings,
+  CreditCard, BookMarked, Shield, Settings, ClipboardList,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import WorkspaceUserMenu from "./WorkspaceUserMenu";
@@ -47,6 +47,7 @@ export default async function WorkspaceHeader() {
         {/* 네비게이션 */}
         <nav className="hidden md:flex items-center gap-1 flex-1">
           <NavItem href="/dashboard" Icon={LayoutDashboard} label="대시보드" />
+          <NavItem href="/management" Icon={ClipboardList} label="경영관리" />
           <NavItem href="/calculators" Icon={Calculator} label="계산 도구" />
           <NavItem href="/learn" Icon={BookMarked} label="위키" />
 

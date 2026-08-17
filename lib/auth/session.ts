@@ -10,6 +10,7 @@ export type UserSession = {
   orgName: string | null
   logoUrl: string | null
   siteIds: string[]         // 접근 가능한 사업장 ID 목록 (owner/admin = 전체, member = 배정된 것만)
+  department: string | null // 자유 텍스트 소속 부서 — 경영관리 모듈 편집 권한 판단에 사용
   planId: string                                      // 'free' | 'starter' | 'team' | 'business' | 'enterprise'
   orgStatus: 'pending' | 'active' | 'suspended'
   orgType: 'individual' | 'corporate'
@@ -43,6 +44,7 @@ export async function getSession(): Promise<UserSession> {
       orgName: null,
       logoUrl: null,
       siteIds: [],
+      department: null,
       planId: 'enterprise',
       orgStatus: 'active',
       orgType: 'individual',
@@ -64,6 +66,7 @@ export async function getSession(): Promise<UserSession> {
     orgName: m.org_name,
     logoUrl: m.logo_url ?? null,
     siteIds: (m.site_ids ?? []) as string[],
+    department: m.department ?? null,
     planId: m.plan_id ?? 'free',
     orgStatus: m.org_status as 'pending' | 'active' | 'suspended',
     orgType: m.org_type as 'individual' | 'corporate',

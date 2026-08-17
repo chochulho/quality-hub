@@ -140,6 +140,9 @@ export interface UpcomingToolDef {
   color: string
 }
 
+// 경영관리(Management)는 자매 SaaS가 아니라 quality-hub 내부 워크스페이스
+// 기능(/management)으로 만들기로 방향 전환 — 여기서 제거하고 WorkspaceHeader
+// 내비게이션으로 노출한다.
 export const UPCOMING_TOOLS: UpcomingToolDef[] = [
   {
     id: 'supply-chain-manager',
@@ -147,13 +150,6 @@ export const UPCOMING_TOOLS: UpcomingToolDef[] = [
     tagline: '공급망 관리',
     description: '협력업체 정보·심사 이력·품질/납기 성과를 통합 관리합니다.',
     color: 'bg-slate-700',
-  },
-  {
-    id: 'management',
-    name: 'Management',
-    tagline: '경영관리',
-    description: 'KPI/BSC, 경영검토, 리스크 분석, 비상계획을 통합 관리합니다.',
-    color: 'bg-teal-700',
   },
 ]
 

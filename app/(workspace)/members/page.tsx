@@ -21,7 +21,7 @@ export default async function MembersPage() {
   const [rawMembersRes, sitesRes, memberSitesRes, memberProductsRes, selectedToolsRes, planRes] = await Promise.all([
     supabase
       .from('org_members')
-      .select('id, user_id, role, invited_email, status, created_at')
+      .select('id, user_id, role, invited_email, status, created_at, department')
       .eq('org_id', session.orgId)
       .order('created_at', { ascending: true }),
     supabase
@@ -73,6 +73,7 @@ export default async function MembersPage() {
         role: m.role as MemberRow['role'],
         status: m.status as MemberRow['status'],
         createdAt: m.created_at,
+        department: m.department ?? null,
         siteIds: siteMap.get(m.id) ?? [],
         productSlugs: productMap.get(m.id) ?? [],
       }
