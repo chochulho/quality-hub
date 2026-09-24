@@ -358,6 +358,36 @@ export async function updateMemberDepartment(
   return {}
 }
 
+/** 멤버 이름 변경 — Supabase Auth user_metadata.full_name에 저장 (가입 시 본인이 입력하는 값과 동일 필드) */
+export async function updateMemberName(
+  memberId: string,
+  name: string
+): Promise<ActionResult> {
+  const auth = await requireAdminSession()
+  if (auth.error || !auth.session) return { error: auth.error }
+  const { session } = auth
+
+  const supabase = createAdminClient()
+  const { data: target } = await supabase
+    .from('org_members')
+    .select('user_id')
+    .eq('id', memberId)
+    .eq('org_id', session.orgId!)
+    .single()
+
+  if (!target) return { error: '멤버를 찾을 수 없습니다.' }
+  if (!target.user_id) return { error: '아직 가입을 완료하지 않은 멤버입니다.' }
+
+  const { error } = await supabase.auth.admin.updateUserById(target.user_id, {
+    user_metadata: { full_name: name.trim() || null },
+  })
+
+  if (error) return { error: '이름 저장 실패: ' + error.message }
+
+  revalidatePath('/members')
+  return {}
+}
+
 /** 멤버 사업장 배정 업데이트 */
 export async function updateMemberSites(
   memberId: string,

@@ -63,13 +63,16 @@ export default async function MembersPage() {
   const members: MemberRow[] = await Promise.all(
     (rawMembersRes.data ?? []).map(async (m) => {
       let email = m.invited_email ?? '—'
+      let name: string | null = null
       if (m.user_id) {
         const { data: { user } } = await supabase.auth.admin.getUserById(m.user_id)
         email = user?.email ?? m.invited_email ?? '—'
+        name = (user?.user_metadata?.full_name as string | undefined) ?? null
       }
       return {
         id: m.id,
         email,
+        name,
         role: m.role as MemberRow['role'],
         status: m.status as MemberRow['status'],
         createdAt: m.created_at,
