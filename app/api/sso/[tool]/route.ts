@@ -179,15 +179,23 @@ export async function GET(
 
     if (error || !data?.properties?.action_link) {
       console.error(`[SSO:${toolId}] magic link 생성 실패:`, error?.message)
-      return NextResponse.redirect(TOOLS[toolId].href)
+      return ssoFailureRedirect(toolId, request)
     }
 
     return NextResponse.redirect(data.properties.action_link)
 
   } catch (err) {
-    console.error(`[SSO:${toolId}] 오류:`, err)
-    return NextResponse.redirect(TOOLS[toolId].href)
+    console.error(`[SSO:${toolId}] 오류:`, err instanceof Error ? (err.stack ?? err.message) : err)
+    return ssoFailureRedirect(toolId, request)
   }
+}
+
+// 실패 시 외부 마케팅 홈페이지로 조용히 보내는 대신, 대시보드로 돌려보내
+// 에러 배너를 띄운다 — 원인 파악 없이 "그냥 아무 일도 없었다는 듯" 사라지는 것을 방지.
+function ssoFailureRedirect(toolId: ToolId, request: NextRequest) {
+  const url = new URL('/dashboard', request.url)
+  url.searchParams.set('sso_error', toolId)
+  return NextResponse.redirect(url)
 }
 
 async function checkToolAccess(

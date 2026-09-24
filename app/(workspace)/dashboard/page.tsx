@@ -15,9 +15,16 @@ export const metadata = { title: '대시보드' }
 
 const PLAN_MAX_TOOLS: Record<string, number> = { starter: 1, team: 3 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sso_error?: string }>
+}) {
   const session = await getSession()
   if (!session) redirect('/login')
+
+  const { sso_error: ssoErrorToolId } = await searchParams
+  const ssoErrorTool = ssoErrorToolId ? TOOLS[ssoErrorToolId as ToolId] : undefined
 
   const isPending = session.orgStatus === 'pending'
   const isSelectable = session.planId === 'starter' || session.planId === 'team'
@@ -85,6 +92,21 @@ export default async function DashboardPage() {
         maxSelectable={isSelectable ? maxSelectable : undefined}
         isPending={isPending}
       />
+
+      {/* ── SSO 연결 실패 배너 ────────────────────────────────── */}
+      {ssoErrorTool && (
+        <div className="mb-8 rounded-2xl border border-destructive/30 bg-destructive/5 px-6 py-4 flex gap-3 items-start">
+          <span className="text-xl mt-0.5">⚠️</span>
+          <div>
+            <p className="font-semibold text-destructive">
+              {ssoErrorTool.name} 연결에 실패했습니다
+            </p>
+            <p className="text-sm text-destructive/80 mt-0.5">
+              일시적인 오류일 수 있습니다. 잠시 후 다시 시도해 주세요. 계속되면 문의해 주세요.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ── 승인 대기 배너 ────────────────────────────────────── */}
       {isPending && (
